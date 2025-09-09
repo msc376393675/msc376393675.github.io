@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>msc的技术小站 - Python学习</title><link href="https://msc376393675.github.io/" rel="alternate"/><link href="https://msc376393675.github.io/feeds/pythonxue-xi.atom.xml" rel="self"/><id>https://msc376393675.github.io/</id><updated>2025-09-04T10:10:00+08:00</updated><entry><title>python里nonlocal和global的区别</title><link href="https://msc376393675.github.io/nonlocal-gloval.html" rel="alternate"/><published>2025-09-04T10:10:00+08:00</published><updated>2025-09-04T10:10:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-09-04:/nonlocal-gloval.html</id><summary type="html">&lt;p&gt;在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;作用域差异&lt;/strong&gt;
+* global‌：用于访问或修改全局变量（模块级别），可 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;作用域差异&lt;/strong&gt;
+* global‌：用于访问或修改全局变量（模块级别），可在任何地方使用，包括嵌套函数中。 ‌
+* nonlocal‌：仅用于嵌套函数中，修改的是上一级函数的局部变量，而非全局变量。 ‌
+&lt;strong&gt;功能差异&lt;/strong&gt;
+* global‌：标记变量为全局变量，修改时同时更新全局变量。 ‌
+* nonlocal‌：标记变量为上一级函数的局部变量，修改时同步更新该局部变量。 ‌
+&lt;strong&gt;使用限制&lt;/strong&gt;
+* global‌：无需提前定义同名全局变量即可使用，但修改全局变量时需显式声明。 ‌
+* nonlocal‌：必须在外层函数中已定义同名局部变量，否则会报错。 ‌
+&lt;strong&gt;示例说明&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;def outer():
+    count = 0
+    def inner():
+        count = 1  # 局部变量定义
+        print(count)  # 输出1（局部变量）
+        nonlocal count  # 修改上一级局部变量
+        count += 1  # 输出2（局部变量+1）
+        print(count)
+    inner()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;使用nonlocal时，若外层函数未定义同名局部变量会报错。 ‌&lt;/p&gt;</content><category term="Python学习"/><category term="Python"/></entry></feed>

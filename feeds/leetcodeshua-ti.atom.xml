@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>msc的技术小站 - Leetcode刷题</title><link href="https://msc376393675.github.io/" rel="alternate"/><link href="https://msc376393675.github.io/feeds/leetcodeshua-ti.atom.xml" rel="self"/><id>https://msc376393675.github.io/</id><updated>2025-08-22T20:34:00+08:00</updated><entry><title>回溯算法解题思路</title><link href="https://msc376393675.github.io/backtrack-algorithm.html" rel="alternate"/><published>2025-08-22T20:34:00+08:00</published><updated>2025-08-22T20:34:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-08-22:/backtrack-algorithm.html</id><summary type="html">&lt;h2&gt;回溯算法的套路&lt;/h2&gt;
+&lt;h3&gt;1. 子集型回溯&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;17. 电话号码的字母组合&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;思路 …&lt;/strong&gt;&lt;/p&gt;</summary><content type="html">&lt;h2&gt;回溯算法的套路&lt;/h2&gt;
+&lt;h3&gt;1. 子集型回溯&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;17. 电话号码的字母组合&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;思路&lt;/strong&gt;:  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;    原问题： 构造长为n的字符串
+                |
+            枚举一个字母
+                ↓
+    子问题: 构造长为n-1的字符串
+
+    当子问题和原问题是比较相似的，这种原问题到子问题的过程适合使用递归的方式解决。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;回溯&lt;/strong&gt; 有一个&lt;strong&gt;增量&lt;/strong&gt;构造答案的过程，这个过程通常用递归实现&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;递归&lt;/strong&gt;的关键是考虑清楚&lt;strong&gt;边界条件&lt;/strong&gt;和&lt;strong&gt;非边界条件&lt;/strong&gt;的逻辑，剩下交给数学归纳法即可，总是考虑&lt;strong&gt;如何向下递&lt;/strong&gt;和&lt;strong&gt;怎么向上归&lt;/strong&gt;反而容易出错。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;回溯三问：&lt;/strong&gt;
+用path记录递归路径中枚举的字母
+| 问题 | 描述 |
+|------|------|
+| 当前操作？ | 枚举 path[i] 要填入的字母 |
+| 子问题？ | 构造字符串 ≥ i 的部分 |
+| 下一个子问题？ | 构造字符串 ≥ i+1 的部分 |&lt;/p&gt;
+&lt;p&gt;dfs(i)  ——&amp;gt; dfs(i+1)&lt;/p&gt;</content><category term="Leetcode刷题"/><category term="回溯，递归"/></entry></feed>

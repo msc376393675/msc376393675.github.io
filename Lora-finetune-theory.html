@@ -1,0 +1,260 @@
+
+<!DOCTYPE HTML>
+<!--
+	Dopetrope 2.0 by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+			<title>msc的技术小站</title>
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta charset="utf-8" />
+			<link href="https://msc376393675.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Full Atom Feed" />
+			<link href="https://msc376393675.github.io/feeds/llmxue-xi.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Categories Atom Feed" />
+			<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,900,300italic" rel="stylesheet" />
+				<link rel="stylesheet" href="/theme/css/pygment.css" />
+			<noscript>
+				<link rel="stylesheet" href="/theme/css/skel-noscript.css" />
+				<link rel="stylesheet" href="/theme/css/style.css" />
+				<link rel="stylesheet" href="/theme/css/style-desktop.css" />
+			</noscript>
+		<script src="https://kit.fontawesome.com/2f9851b6f6.js" crossorigin="anonymous"></script>
+		
+	</head>
+	<body class="no-sidebar">
+		<!-- Header Wrapper -->
+			<div id="header-wrapper">
+				<div class="container">
+					<div class="row">
+						<div class="12u">
+						
+							<!-- Header -->
+								<section id="header">
+									
+									<!-- Logo -->
+									<h1><a href="https://msc376393675.github.io/">msc的技术小站</a></h1>
+									
+									<!-- Nav -->
+										<nav id="nav">
+											<ul>
+											</ul>
+										</nav>
+
+								</section>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		
+		<!-- Main Wrapper -->
+			<div id="main-wrapper">
+				<div class="container">
+<div class="row">
+	<div class="12u">
+			<section>
+				<div>
+					<div class="row">
+						<div class="12u skel-cell-mainContent">
+							<!-- Content -->
+								<article class="box is-post">
+									<div class="post-infos">
+										<ul class="tags">
+											<li><a class="button" href="category/llmxue-xi.html">Llm学习</a></li>
+												<li><a class="button button-alt" href="tag/lorawei-diao.html">Lora微调</a></li>
+
+												<li><a class="button button-alt" href="tag/llm.html">Llm</a></li>
+
+										</ul>
+									</div>
+
+									<div class="pennant pennant-alt date">2025-08-21</div>
+									<h2>Lora微调的原理</h2>
+									<h2>从矩阵奇异值分解到LoRA原理</h2>
+<p>在当今人工智能领域，大型语言模型（LLM）展现出了惊人的能力，但如何让这些“通才”模型更好地适应特定任务，成为一个“专才”，是学术界和工业界都极为关注的问题。答案就是<strong>微调</strong>。然而，对动辄拥有数百上千亿参数的庞然大物进行微调，成本极高。</p>
+<p>为了解决这一挑战，一种名为<strong>LoRA（Low-Rank Adaptation，低秩适配）</strong>的参数高效微调技术应运而生，它通过巧妙的数学原理，实现了“四两拨千斤”的效果，在不牺牲太多性能的前提下，极大降低了微调的成本。要理解LoRA的精髓，我们需要从一个线性代数中的基本概念——<strong>奇异值分解（Singular Value Decomposition, SVD）</strong>说起。</p>
+<h3>奇异值分解（SVD）：抓住矩阵的“主要矛盾”</h3>
+<p>想象一下，在神经网络中，每一层都包含一个巨大的权重矩阵（$W$），这个矩阵定义了该层如何对输入数据进行线性变换。SVD告诉我们，任何一个矩阵 $W$ 都可以被分解为三个矩阵的乘积：</p>
+<p>$$W = U \Sigma V^T$$</p>
+<p>其中：
+* <strong>$U$ 和 $V$</strong> 是两个<strong>正交矩阵（Orthogonal Matrix）</strong>。在线性变换的几何意义上，正交矩阵代表着旋转或反射，它不改变数据内部的相对关系和尺寸，只改变其在空间中的朝向。
+* <strong>$\Sigma$</strong> 是一个<strong>对角矩阵（Diagonal Matrix）</strong>。它的对角线上的元素被称为<strong>奇异值（Singular Values）</strong>，并且通常从大到小排列。奇异值非常关键，它们衡量了数据在各个方向上被拉伸或缩放的程度。<strong>一个奇异值越大，说明对应的变换方向（特征）在原始矩阵 $W$ 中所占的“信息量”或“重要性”就越高。</strong></p>
+<p><strong>SVD的核心思想在于，它能够揭示出矩阵中最重要的信息。</strong> 绝大多数情况下，一个大矩阵的很多奇异值都非常小，接近于零。这意味着这些方向上的变换对最终结果的贡献微乎其微。</p>
+<p>这就引出了一个至关重要的应用：<strong>低秩近似（Low-Rank Approximation）</strong>。我们可以保留 $\Sigma$ 矩阵中最大的前 $k$ 个奇异值，并将其他奇异值置为零，得到一个新的对角矩阵 $\Sigma_k$。然后，通过新的矩阵 $U_k$、$\Sigma_k$ 和 $V_k^T$（$U$ 和 $V$ 的前 $k$ 列/行）相乘，我们就可以得到一个原始矩阵 $W$ 的近似矩阵 $W_k$。</p>
+<p>$$W \approx W_k = U_k \Sigma_k V_k^T$$</p>
+<p>这个新的矩阵 $W_k$ 的“秩”（Rank）为 $k$，远小于原始矩阵的秩。我们用更少的数据（更小的矩阵）保留了原始矩阵绝大部分的信息，抓住了它的“主要矛盾”。</p>
+<h3>全参数更新的代价</h3>
+<p>在介绍LoRA之前，我们先看看传统的<strong>全量微调（Full Fine-tuning）</strong>。一个预训练好的大模型，其权重矩阵 $W_0$ 包含了从海量数据中学到的通用知识。当我们针对特定任务（如法律文书写作、医疗问答）进行微调时，本质上是在更新这个权重矩阵。</p>
+<p>全量微调的过程是，在新的任务数据上进行训练，通过反向传播计算梯度，对原始权重矩阵 $W_0$ 的每一个参数进行微小的调整，得到一个新的权重矩阵 $W_1 = W_0 + \Delta W$。这里的 $\Delta W$ 就是权重更新量。</p>
+<p>这种方法的<strong>主要问题</strong>在于：
+* <strong>计算成本高昂</strong>：对于一个百亿参数的模型，存储和计算 $\Delta W$ 需要巨大的显存和计算资源。
+* <strong>存储效率低下</strong>：为每一个新任务都要存储一份完整的、与原始模型同样大小的新模型副本，成本极高。</p>
+<h3>LoRA的破局之道</h3>
+<p>LoRA的提出者们观察到了一个关键现象：在模型适配到新任务的过程中，这个权重更新矩阵 $\Delta W$ 具有“<strong>低内在秩（Low Intrinsic Rank）</strong>”的特性。通俗地讲，就是这个巨大的更新矩阵，其大部分信息也可以被一个低秩矩阵来近似。</p>
+<p>这与我们前面提到的SVD低秩近似不谋而合。既然 $\Delta W$ 可以被低秩近似，我们何不直接学习一个低秩的表示，而不是去学习整个庞大的 $\Delta W$ 呢？</p>
+<p>LoRA的做法正是如此。它冻结了原始的、巨大的预训练权重矩阵 $W_0$，并在旁边增加了一个“旁路”，这个旁路用来模拟 $\Delta W$。它没有直接去学习一个与 $W_0$ 同样大小的 $\Delta W$，而是学习了两个更小的矩阵 $A$ 和 $B$ 的乘积来近似它：</p>
+<p>$$\Delta W \approx BA$$</p>
+<p>这里的关键在于矩阵 $A$ 和 $B$ 的维度。假设原始权重 $W_0$ 的维度是 $d \times d$，$A$ 的维度是 $d \times r$，$B$ 的维度是 $r \times d$。这里的 $r$ 就是我们设定的<strong>秩（Rank）</strong>，它远小于 $d$（例如，$r$ 可以是8、16或64，而 $d$ 可能是几千甚至上万）。</p>
+<p>这样一来，在微调过程中：</p>
+<ol>
+<li><strong>原始权重 $W_0$ 保持不变</strong>，不参与训练。</li>
+<li><strong>我们只训练参数量极小的矩阵 $A$ 和 $B$</strong>。需要更新的参数数量从 $d \times d$ 锐减到 $d \times r + r \times d = 2dr$。当 $r \ll d$ 时，参数量实现了数量级的下降。</li>
+<li>在进行前向传播时，模型的输出 $y$ 由两部分组成：原始模型的输出和旁路矩阵的输出。</li>
+</ol>
+<p>$$y = W_0x + \Delta Wx = W_0x + (BA)x$$</p>
+<p><strong>LoRA与SVD的联系在于，它背后的核心假设与SVD能够实现低秩近似的原理是相通的。</strong> SVD从理论上证明了任何矩阵都可以通过保留其最重要的奇异值来实现高效的低秩近似。LoRA则在实践中假设模型微调的权重更新也符合这种“信息集中在少数关键方向”的特性，因此可以直接去学习一个低秩的更新表示，从而绕过了计算和存储整个庞大更新矩阵的难题。</p>
+<p><strong>LoRA的优势总结：</strong></p>
+<ul>
+<li><strong>高效训练</strong>：需要训练的参数量大幅减少，显著降低了对计算资源的需求。</li>
+<li><strong>高效存储和切换</strong>：对于每个新任务，只需存储和加载小得多的矩阵 $A$ 和 $B$（通常只有几MB），而无需保存整个模型的副本。这使得在多个任务之间切换变得极为方便。</li>
+<li><strong>性能相当</strong>：大量实验证明，通过精心选择秩 $r$ 和其他超参数，LoRA可以在许多任务上达到与全量微调相媲美甚至更好的性能。</li>
+</ul>
+<p>总而言之，从SVD揭示的矩阵内在结构的重要性，到LoRA巧妙地将这一原理应用于大模型微调，我们看到数学理论是如何为解决复杂的工程问题提供深刻洞见的。LoRA通过抓住模型更新的“主要矛盾”，实现了高效、低成本的个性化模型定制，极大地推动了大型语言模型在更广泛领域的应用和发展。</p>
+<h3>LoRA的初始化以及关键参数</h3>
+<p>通常我们会将里<strong>ΔW≈BA</strong>的<strong>矩阵B</strong>称为降维矩阵，采用<strong>全的初始化</strong>，这样在一开始W' = W + ΔW = W, 因为此时 ΔW = 0。<strong>矩阵B</strong>称为升维矩阵，通常是采用<strong>高斯分布随机初始化</strong>，这样即可完成初始化步骤。</p>
+								</article>
+						</div>
+					</div>
+				</div>
+			</section>
+	</div>
+</div>
+
+				</div>
+			</div>
+
+		<!-- Footer Wrapper -->
+			<div id="footer-wrapper">
+				<!-- Footer -->
+					<section id="footer" class="container">
+						<div class="row">
+							<div class="8u">
+								<section>
+									<header>
+										<h2>Latest articles</h2>
+									</header>
+									<ul class="dates">
+										<li>
+											<span class="date">9月 <strong>4</strong></span>
+											<h3><a href="nonlocal-gloval.html">python里nonlocal和global的区别</a></h3>
+											<p><p>在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：</p>
+<p><strong>作用域差异</strong>
+* global‌：用于访问或修改全局变量（模块级别），可 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>31</strong></span>
+											<h3><a href="ppo-grpo-difference.html">对比PPO和GRPO的原理</a></h3>
+											<p><h2>PPO算法原理：</h2>
+<p>PPO是一种<strong>策略梯度（Policy Gradient）</strong>算法，属于强化学习（Reinforcement Learning, RL）的范畴。它的核 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>22</strong></span>
+											<h3><a href="backtrack-algorithm.html">回溯算法解题思路</a></h3>
+											<p><h2>回溯算法的套路</h2>
+<h3>1. 子集型回溯</h3>
+<p><strong>17. 电话号码的字母组合</strong></p>
+<p><strong>思路 …</strong></p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>21</strong></span>
+											<h3><a href="Lora-finetune-theory.html">Lora微调的原理</a></h3>
+											<p><h2>从矩阵奇异值分解到LoRA原理</h2>
+<p>在当今人工智能领域，大型语言模型 …</p></p>
+										</li>
+									</ul>
+								</section>
+							</div>
+								<div class="4u">
+									<section>
+										<header>
+											<h2>What's this all about?</h2>
+										</header>
+											<a href="/pages/about.me.html" class="image image-full"><img src="https://msc376393675.github.io/images/pic10.jpg" alt="" /></a>
+										<p>
+										一名努力学习大模型相关技术的数据科学专业在读研究生。
+										</p>
+										<footer>
+												<a href="/pages/about.me.html" class="button">Find out more</a>
+										</footer>
+									</section>
+								</div>
+						</div>
+						<div class="row">
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Blogroll</h2>
+									</header>
+									<ul class="divided">
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Categories</h2>
+									</header>
+									<ul class="divided">
+											<li><a href="https://msc376393675.github.io/category/leetcodeshua-ti.html">Leetcode刷题</a></li>
+											<li><a href="https://msc376393675.github.io/category/llm.html">LLM</a></li>
+											<li><a href="https://msc376393675.github.io/category/llmxue-xi.html">LLM学习</a></li>
+											<li><a href="https://msc376393675.github.io/category/pythonxue-xi.html">Python学习</a></li>
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+							
+								<section>
+									<header>
+										<h2>Contact</h2>
+									</header>
+									<ul class="social">
+												<li>
+													<a href="https://github.com/msc376393675" target="_blank" aria-label="github">
+														<i class="fab fa-github"></i>
+													</a>
+												</li>
+												<li>
+													<a href="mailto:shichenma@outlook.com" target="_blank" aria-label="envelope">
+														<i class="fas fa-envelope"></i>
+													</a>
+												</li>
+												<li>
+													<a href="/images/wechat_qr.jpg" target="_blank" aria-label="weixin">
+														<i class="fab fa-weixin"></i>
+													</a>
+												</li>
+									</ul>
+									<ul class="contact">
+											<li>
+												<h3>Phone</h3>
+												<p>+86 18320131508</p>
+											</li>
+										
+									</ul>
+								</section>
+							</div>
+						</div>
+						<div class="row">
+							<div class="12u">
+								<!-- Copyright -->
+									<div id="copyright">
+										<ul class="links">
+											<li>&copy; Shichen Ma	</li>
+											<li>Images: <a href="http://facebook.com/DreametryDoodle">Dreametry Doodle</a> + <a href="http://iconify.it">Iconify.it</a></li>
+											<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+										</ul>
+									</div>
+							</div>
+						</div>
+					</section>
+			</div>
+		<script src="/theme/js/jquery.min.js"></script>
+		<script src="/theme/js/jquery.dropotron.js"></script>
+		<script src="/theme/js/config.js"></script>
+		<script src="/theme/js/skel.min.js"></script>
+		<script src="/theme/js/skel-panels.min.js"></script>
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><link rel="stylesheet" href="/theme/css/ie8.css" /><![endif]-->
+	</body>
+</html>

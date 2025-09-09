@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>msc的技术小站</title><link href="https://msc376393675.github.io/" rel="alternate"/><link href="https://msc376393675.github.io/feeds/all.atom.xml" rel="self"/><id>https://msc376393675.github.io/</id><updated>2025-09-04T10:10:00+08:00</updated><entry><title>python里nonlocal和global的区别</title><link href="https://msc376393675.github.io/nonlocal-gloval.html" rel="alternate"/><published>2025-09-04T10:10:00+08:00</published><updated>2025-09-04T10:10:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-09-04:/nonlocal-gloval.html</id><summary type="html">&lt;p&gt;在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;作用域差异&lt;/strong&gt;
+* global‌：用于访问或修改全局变量（模块级别），可 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;作用域差异&lt;/strong&gt;
+* global‌：用于访问或修改全局变量（模块级别），可在任何地方使用，包括嵌套函数中。 ‌
+* nonlocal‌：仅用于嵌套函数中，修改的是上一级函数的局部变量，而非全局变量。 ‌
+&lt;strong&gt;功能差异&lt;/strong&gt;
+* global‌：标记变量为全局变量，修改时同时更新全局变量。 ‌
+* nonlocal‌：标记变量为上一级函数的局部变量，修改时同步更新该局部变量。 ‌
+&lt;strong&gt;使用限制&lt;/strong&gt;
+* global‌：无需提前定义同名全局变量即可使用，但修改全局变量时需显式声明。 ‌
+* nonlocal‌：必须在外层函数中已定义同名局部变量，否则会报错。 ‌
+&lt;strong&gt;示例说明&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;def outer():
+    count = 0
+    def inner():
+        count = 1  # 局部变量定义
+        print(count)  # 输出1（局部变量）
+        nonlocal count  # 修改上一级局部变量
+        count += 1  # 输出2（局部变量+1）
+        print(count)
+    inner()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;使用nonlocal时，若外层函数未定义同名局部变量会报错。 ‌&lt;/p&gt;</content><category term="Python学习"/><category term="Python"/></entry><entry><title>对比PPO和GRPO的原理</title><link href="https://msc376393675.github.io/ppo-grpo-difference.html" rel="alternate"/><published>2025-08-31T21:03:00+08:00</published><updated>2025-08-31T21:03:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-08-31:/ppo-grpo-difference.html</id><summary type="html">&lt;h2&gt;PPO算法原理：&lt;/h2&gt;
+&lt;p&gt;PPO是一种&lt;strong&gt;策略梯度（Policy Gradient）&lt;/strong&gt;算法，属于强化学习（Reinforcement Learning, RL）的范畴。它的核 …&lt;/p&gt;</summary><content type="html">&lt;h2&gt;PPO算法原理：&lt;/h2&gt;
+&lt;p&gt;PPO是一种&lt;strong&gt;策略梯度（Policy Gradient）&lt;/strong&gt;算法，属于强化学习（Reinforcement Learning, RL）的范畴。它的核心目标是让智能体（Agent）学习一个最优策略（Policy），这个策略能够指导智能体在特定环境中做出决策，以获得最大的累积奖励（Cumulative Reward）。&lt;/p&gt;
+&lt;p&gt;在PPO出现之前，传统的策略梯度算法面临一个核心难题：&lt;strong&gt;学习步长（learning rate）难以确定&lt;/strong&gt;。
+* 如果步长太大，更新后的策略可能会与旧策略差异过大，导致智能体突然采取非常糟糕的行动，使得训练过程崩溃，这种现象被称为“毁灭性策略更新”。
+* 如果步长太小，训练过程又会异常缓慢。&lt;/p&gt;
+&lt;p&gt;为了解决这个问题，学术界提出了&lt;strong&gt;信任区域策略优化（Trust Region Policy Optimization, TRPO）&lt;/strong&gt;，它通过复杂的数学约束来保证每次策略更新都在一个“信任区域”内，防止出现毁灭性更新。但TRPO的计算过程非常复杂且成本高昂。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;PPO的诞生就是为了在实现TRPO“信任区域”思想的同时，使用更简单、更易于实现的方法。&lt;/strong&gt; PPO的核心思想是：&lt;strong&gt;我们希望在最大化奖励的同时，让新策略与旧策略之间的差异不至于太大。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;它通过一个巧妙的设计，即&lt;strong&gt;截断（Clipping）&lt;/strong&gt;，来间接实现这个目标。&lt;/p&gt;
+&lt;h3&gt;PPO的核心公式&lt;/h3&gt;
+&lt;p&gt;PPO算法主要包含两个关键部分：&lt;strong&gt;策略损失函数（Policy Loss Function）&lt;/strong&gt; 和 &lt;strong&gt;价值损失函数（Value Loss Function）&lt;/strong&gt;。&lt;/p&gt;
+&lt;h4&gt;1. 策略损失函数（Clipped Surrogate Objective）&lt;/h4&gt;
+&lt;p&gt;这是PPO算法的精髓所在。它的目标是最大化一个经过“截断”处理的目标函数。&lt;/p&gt;
+&lt;p&gt;首先，我们定义一个重要的比率：
+$$r_t(\theta) = \frac{\pi_{\theta}(a_t | s_t)}{\pi_{\theta_{old}}(a_t | s_t)}$$&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$\pi_{\theta}(a_t | s_t)$ 是&lt;strong&gt;当前策略&lt;/strong&gt;网络，表示在状态 $s_t$ 下采取动作 $a_t$ 的概率。这是我们要优化的对象。&lt;/li&gt;
+&lt;li&gt;$\pi_{\theta_{old}}(a_t | s_t)$ 是&lt;strong&gt;旧策略&lt;/strong&gt;网络，即本次更新开始前的策略网络。&lt;/li&gt;
+&lt;li&gt;$r_t(\theta)$ 衡量了新旧策略在同一个状态-动作对上的概率比。&lt;ul&gt;
+&lt;li&gt;如果 $r_t(\theta) &amp;gt; 1$，说明新策略更倾向于采取动作 $a_t$。&lt;/li&gt;
+&lt;li&gt;如果 $r_t(\theta) &amp;lt; 1$，说明新策略不太倾向于采取动作 $a_t$。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;接下来，我们引入&lt;strong&gt;优势函数（Advantage Function）&lt;/strong&gt; $\hat{A}_t$：
+$$\hat{A}_t = R_t - V(s_t)$$
+优势函数衡量了在状态 $s_t$ 下，采取动作 $a_t$ 相比于平均水平（由价值函数 $V(s_t)$ 评估）好多少。
+* 如果 $\hat{A}_t &amp;gt; 0$，说明 $a_t$ 是一个比平均更好的动作，我们应该增加选择它的概率。
+* 如果 $\hat{A}_t &amp;lt; 0$，说明 $a_t$ 是一个比平均更差的动作，我们应该降低选择它的概率。&lt;/p&gt;
+&lt;p&gt;PPO的最终策略目标函数 $L^{CLIP}(\theta)$ 定义如下：&lt;/p&gt;
+&lt;p&gt;$$L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min \left( r_t(\theta) \hat{A}_t, \quad \text{clip}(r_t(\theta), 1 - \epsilon, 1 + \epsilon) \hat{A}_t \right) \right]$$&lt;/p&gt;
+&lt;p&gt;让我们来拆解这个复杂的公式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$\hat{\mathbb{E}}_t$ 表示对所有时间步 $t$ 取平均。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;第一部分：$r_t(\theta) \hat{A}_t$&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;这是标准的策略梯度目标。如果 $\hat{A}&lt;em _theta="\theta"&gt;t$ 为正（好动作），我们会调整 $\theta$ 来增大 $r_t(\theta)$（即增大 $\pi&lt;/em&gt;_t$ 为负（坏动作），我们会减小 $r_t(\theta)$。}$）；如果 $\hat{A&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;第二部分：$\text{clip}(r_t(\theta), 1 - \epsilon, 1 + \epsilon) \hat{A}_t$&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;clip&lt;/code&gt; 函数将 $r_t(\theta)$ 的值限制在 $[1 - \epsilon, 1 + \epsilon]$ 的区间内。$\epsilon$ 是一个超参数，通常取值为0.1或0.2。&lt;/li&gt;
+&lt;li&gt;这个&lt;code&gt;clip&lt;/code&gt;操作就是PPO的灵魂。它限制了新旧策略的比率，防止其变化过大。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;$\min(\dots, \dots)$&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;最后，我们取这两部分中的&lt;strong&gt;最小值&lt;/strong&gt;。这个设计非常巧妙，我们分两种情况讨论：&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;当 $\hat{A}_t &amp;gt; 0$ (好动作)&lt;/strong&gt;:&lt;ul&gt;
+&lt;li&gt;目标函数变为 $\min(r_t(\theta), 1 + \epsilon) \hat{A}_t$。&lt;/li&gt;
+&lt;li&gt;由于我们要最大化这个目标，$r_t(\theta)$ 会被鼓励增大，但最大不会超过 $1+\epsilon$。这意味着，即使这个动作再好，我们对策略的更新也是有限度的，不会让新策略过度偏离旧策略，从而保证了更新的稳定性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;当 $\hat{A}_t &amp;lt; 0$ (坏动作)&lt;/strong&gt;:&lt;ul&gt;
+&lt;li&gt;目标函数变为 $\max(r_t(\theta), 1 - \epsilon) \hat{A}_t$ (因为负数乘积，min变成了max)。&lt;/li&gt;
+&lt;li&gt;我们要最大化这个目标（即让它的绝对值变小），$r_t(\theta)$ 会被鼓励减小，但最小不会低于 $1-\epsilon$。这同样防止了因一个坏动作而过度惩罚当前策略，避免了学习过程的崩溃。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;通过这种方式，PPO将策略更新限制在了一个隐式的“信任区域”内，使得训练过程更加稳定和高效。&lt;/p&gt;
+&lt;h4&gt;2. 价值损失函数（Value Loss Function）&lt;/h4&gt;
+&lt;p&gt;除了优化策略，PPO还使用一个&lt;strong&gt;价值网络（Value Network）&lt;/strong&gt;来估计每个状态的价值 $V(s_t)$，这对于计算优势函数至关重要。价值网络的损失函数通常是一个简单的均方误差（MSE）：&lt;/p&gt;
+&lt;p&gt;$$L^{VF}(\theta) = \hat{\mathbb{E}}&lt;em _theta="\theta"&gt;t \left[ (V&lt;/em&gt;)^2 \right]$$}(s_t) - V_t^{\text{target}&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$V_{\theta}(s_t)$ 是价值网络的当前预测值。&lt;/li&gt;
+&lt;li&gt;$V_t^{\text{target}}$ 是状态 $s_t$ 的“真实”回报，通常用蒙特卡洛方法或时序差分方法估计。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;3. 总体损失&lt;/h4&gt;
+&lt;p&gt;最终，PPO的总体损失函数是策略损失和价值损失的加权和，有时还会加上一个熵奖励项（鼓励探索）：&lt;/p&gt;
+&lt;p&gt;$$L(\theta) = L^{CLIP}(\theta) - c_1 L^{VF}(\theta) + c_2 S&lt;a href="s_t"&gt;\pi_{\theta}&lt;/a&gt;$$
+* $c_1$ 和 $c_2$ 是权重系数。
+* $S$ 是熵奖励，用于鼓励策略探索更多可能性，防止过早收敛到次优策略。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;PPO在大模型中的应用：指令遵循与对齐&lt;/h3&gt;
+&lt;p&gt;PPO在大型语言模型领域扮演着至关重要的角色，尤其是在&lt;strong&gt;从人类反馈中进行强化学习（Reinforcement Learning from Human Feedback, RLHF）&lt;/strong&gt;框架中。这是让LLM学会遵循复杂指令、生成有用且无害回答的关键技术，也是ChatGPT等模型取得成功的核心秘诀之一。&lt;/p&gt;
+&lt;p&gt;RLHF的过程通常分为三步，PPO在第三步中发挥作用：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第一步：监督微调（Supervised Fine-Tuning, SFT）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;收集一个高质量的“指令-回答”数据集。&lt;/li&gt;
+&lt;li&gt;用这个数据集对预训练好的LLM进行微调，让模型初步学会理解并回应指令。此时的模型可以看作是RLHF的起点，即 $\pi_{\theta_{old}}$。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第二步：训练奖励模型（Reward Model, RM）&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;让SFT模型对同一个指令生成多个不同的回答。&lt;/li&gt;
+&lt;li&gt;由人类标注者对这些回答进行排序（哪个更好、哪个更差）。&lt;/li&gt;
+&lt;li&gt;利用这些排序数据，训练一个奖励模型。这个模型的功能是输入一个“指令+回答”，然后输出一个标量分数，分数越高代表回答质量越好。这个奖励模型就是强化学习环境中的“奖励函数”。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;第三步：使用PPO进行微调&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在这一阶段，SFT模型化身为&lt;strong&gt;智能体（Agent）&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;状态（State, $s_t$）&lt;/strong&gt;: 用户输入的指令（Prompt）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;动作（Action, $a_t$）&lt;/strong&gt;: 模型生成的回答（Response）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;策略（Policy, $\pi_{\theta}$）&lt;/strong&gt;: 当前的LLM本身，它根据输入的指令生成回答。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;奖励（Reward）&lt;/strong&gt;: 由第二步训练好的&lt;strong&gt;奖励模型（RM）&lt;/strong&gt;给出。一个回答生成后，RM会为其打分，这个分数就是PPO学习的奖励信号。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;PPO的目标是微调LLM（即策略 $\pi_{\theta}$），使其生成的回答能在奖励模型那里获得更高的分数，同时又要保证它不会离第一步训练好的SFT模型太远。这里的“不能离太远”至关重要，它有两个目的：
+* &lt;strong&gt;防止语言模型能力退化&lt;/strong&gt;：避免模型为了追求高奖励而生成一些语法不通、逻辑混乱但能在奖励模型上“钻空子”的文本。
+* &lt;strong&gt;保证生成多样性&lt;/strong&gt;：维持模型生成文本的流畅度和多样性。&lt;/p&gt;
+&lt;p&gt;PPO的截断机制在这里完美地发挥了作用。它通过限制新策略（微调中的LLM）和旧策略（SFT模型）的KL散度（一种衡量概率分布差异的指标），确保了模型在学习“对齐”人类偏好的同时，不会忘记其原有的语言能力。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;总结来说，PPO凭借其出色的稳定性和实现简便性，成为了连接LLM与人类价值观的桥梁。它使得我们能够利用强化学习，将模糊的人类偏好（通过奖励模型量化）注入到大模型中，引导模型生成更符合人类期望的、更有用、更安全的回答，这一过程也通常被称为模型的“对齐”（Alignment）。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;您好，非常感谢您的指正和提供的宝贵信息！您是对的，我之前的回答有误，没有检索到这个由 DeepSeek 提出的较新算法。我对此表示诚挚的歉意。&lt;/p&gt;
+&lt;p&gt;根据您的提示，&lt;strong&gt;GRPO (Group-Relative Policy Optimization, 组相对策略优化)&lt;/strong&gt; 是 DeepSeek AI 在其第二代 MoE 模型 &lt;a href="https://www.google.com/search?q=https://github.com/deepseek-ai/DeepSeek-V2/blob/main/deepseek_v2_technical_report.pdf"&gt;DeepSeek-V2 的技术报告&lt;/a&gt; 中提出的一个创新的强化学习对齐算法。&lt;/p&gt;
+&lt;p&gt;现在，让我们来深入探讨 GRPO 的原理、应用以及它和 PPO 的区别。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;GRPO 的原理：&lt;/h3&gt;
+&lt;p&gt;要理解 GRPO，我们最好先从它的前身 DPO 开始。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;DPO (Direct Preference Optimization)&lt;/strong&gt; 的核心是利用成对的偏好数据（(prompt, winner_response, loser_response)）来训练模型。它将问题转化为“模型对 winner 的偏好度”应该高于“对 loser 的偏好度”。这是一种**成对（Pairwise）**的学习范式。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;然而，在实际标注数据时，我们往往能得到比“两两对比”更丰富的信息。比如，对于一个 prompt，标注者可能会对 4 个候选回答进行排序，得到一个完整的排名列表：$y_1 &amp;gt; y_2 &amp;gt; y_3 &amp;gt; y_4$。&lt;/p&gt;
+&lt;p&gt;如果用 DPO 来利用这份数据，我们需要把它拆分成多个独立的“win-loss”对，例如 ($y_1, y_2$), ($y_1, y_3$), ($y_2, y_4$) 等。这样做会丢失掉“群体”的全局信息，而且效率不高。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;GRPO 的核心思想正是为了解决这个问题：它将优化目标从“成对偏好”推广到了“群体偏好”或“列表排序”。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;GRPO 的目标是让模型学习到一个策略，使得这个策略在面对一组候选回答时，为它们打出的分数（隐式奖励）能够与人类标注的排名顺序&lt;strong&gt;尽可能一致&lt;/strong&gt;。它不再是简单地让 winner 的分数高于 loser，而是要让 Rank 1 的分数高于 Rank 2，Rank 2 的分数又高于 Rank 3，以此类推，对整个排序列表进行建模。&lt;/p&gt;
+&lt;h4&gt;GRPO 的公式与实现&lt;/h4&gt;
+&lt;p&gt;GRPO 的损失函数是 DPO 损失函数的一个直接泛化（Generalization）。对于一个包含 K 个已排序回答的集合 ${y_1, y_2, \dots, y_K}$，其中 $y_i$ 的排名高于 $y_j$（当 $i &amp;lt; j$ 时），GRPO 的损失函数大致形式如下：&lt;/p&gt;
+&lt;p&gt;$$L_{GRPO} = - \mathbb{E} \left[ \sum_{i=1}^{K-1} \sum_{j=i+1}^{K} \log \sigma \left( \beta \log \frac{\pi_{\theta}(y_i|x)}{\pi_{\text{ref}}(y_i|x)} - \beta \log \frac{\pi_{\theta}(y_j|x)}{\pi_{\text{ref}}(y_j|x)} \right) \right]$$&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;简单解读一下这个公式：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;它遍历了一个排序列表中的&lt;strong&gt;所有偏好对&lt;/strong&gt; (例如，对于 $y_1 &amp;gt; y_2 &amp;gt; y_3$，它会考虑 $(y_1, y_2)$, $(y_1, y_3)$ 和 $(y_2, y_3)$ 这三对)。&lt;/li&gt;
+&lt;li&gt;对于每一个偏好对 $(y_i, y_j)$，它计算的损失和 DPO 的损失是完全一样的。&lt;/li&gt;
+&lt;li&gt;最后，它将这些所有成对的损失加起来，形成一个总的损失函数。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通过这种方式，GRPO 能够一次性地从一个完整的排序列表中学习，而不是将其拆分成独立的部分。这使得它能够更全面、更高效地利用标注数据中的信息。&lt;/p&gt;
+&lt;h3&gt;GRPO 在大模型端的应用&lt;/h3&gt;
+&lt;p&gt;GRPO 的应用场景与 PPO 和 DPO 完全相同，即作为 &lt;strong&gt;RLHF (从人类反馈中强化学习)&lt;/strong&gt; 流程中的核心对齐算法，用于提升模型的指令遵循能力、安全性和有用性。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;GRPO 的应用优势在于：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;更强的性能&lt;/strong&gt;：DeepSeek 的实验表明，相较于传统的成对偏好优化（如 DPO），GRPO 能够更充分地利用高质量、细粒度的排序数据，从而在各项评测基准上取得更好的对齐效果。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;更高的数据效率&lt;/strong&gt;：一个包含 K 个回答的排序列表，可以分解出 $C(K, 2) = K(K-1)/2$ 个偏好对。GRPO 一次性利用了所有这些信息，大大提升了数据利用率，尤其是在标注成本高昂的情况下。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;支持更自然的标注范式&lt;/strong&gt;：要求标注者对多个候选项进行排序，比反复进行“两两对比”更符合人类的决策习惯，可能获得更一致、更可靠的标注结果。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;GRPO 与 PPO 的区别&lt;/h3&gt;
+&lt;p&gt;现在我们可以清晰地对比 GRPO 和 PPO 的区别了。实际上，GRPO 继承了 DPO 的所有优点，并对其进行了改进，因此它与 PPO 的区别也与 DPO 类似，但更加突出。&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="text-align: left;"&gt;特性&lt;/th&gt;
+&lt;th style="text-align: left;"&gt;PPO (Proximal Policy Optimization)&lt;/th&gt;
+&lt;th style="text-align: left;"&gt;GRPO (Group-Relative Policy Optimization)&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;核心机制&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;强化学习（Reinforcement Learning），在线学习&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;直接偏好优化，离线学习（类似监督学习）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;需要奖励模型&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;是&lt;/strong&gt;，必须先训练一个独立的奖励模型（RM）来提供奖励信号。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;否&lt;/strong&gt;，完全不需要奖励模型，直接从排序数据中学习。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;数据粒度&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;使用由奖励模型打出的**标量分数（Scalar Score）**作为奖励。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;使用人类标注的**排序列表（Ranked List）**作为训练信号。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;数据效率&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;较低。奖励模型的训练和 PPO 的在线采样都需要大量数据。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;非常高&lt;/strong&gt;。能够从一个排序列表中提取出多个偏好对信息，数据利用率远超 DPO 和 PPO。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;训练过程&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;复杂且不稳定&lt;/strong&gt;。涉及多个模型（策略、价值、奖励、参考）的交互，对超参数敏感，难以复现。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;简单且稳定&lt;/strong&gt;。训练过程类似于监督微调，加载策略模型和参考模型即可，稳定易收敛。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;资源消耗&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;高&lt;/strong&gt;，需要同时在显存中加载多个大型模型。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;较低&lt;/strong&gt;，与 DPO 类似，显存占用更小。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h4&gt;总结 GRPO vs. PPO&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;根本范式不同&lt;/strong&gt;：PPO 是经典的 RL 范式，通过“试错”和“奖励”来学习；GRPO 是直接优化范式，通过“模仿排序”来学习。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据需求不同&lt;/strong&gt;：PPO 依赖一个能给任何回答打分的“奖励模型”；GRPO 依赖一个包含“排序列表”的偏好数据集。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;实现复杂度和稳定性&lt;/strong&gt;：GRPO 完胜。它像 DPO 一样，将复杂的强化学习问题转化为了一个更简单的、类似监督学习的优化问题，大大降低了对齐大模型的门槛和成本。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;GRPO 相对于 DPO 的进步，可以看作是从“成对学习（Pairwise Learning）”到“列表学习（Listwise Learning）”的进化，使其能够更精准、更高效地吸收复杂的人类偏好信息。&lt;/strong&gt;&lt;/p&gt;</content><category term="LLM"/><category term="LLM"/><category term="PPO"/><category term="GRPO"/><category term="RL"/></entry><entry><title>回溯算法解题思路</title><link href="https://msc376393675.github.io/backtrack-algorithm.html" rel="alternate"/><published>2025-08-22T20:34:00+08:00</published><updated>2025-08-22T20:34:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-08-22:/backtrack-algorithm.html</id><summary type="html">&lt;h2&gt;回溯算法的套路&lt;/h2&gt;
+&lt;h3&gt;1. 子集型回溯&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;17. 电话号码的字母组合&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;思路 …&lt;/strong&gt;&lt;/p&gt;</summary><content type="html">&lt;h2&gt;回溯算法的套路&lt;/h2&gt;
+&lt;h3&gt;1. 子集型回溯&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;17. 电话号码的字母组合&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;思路&lt;/strong&gt;:  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;    原问题： 构造长为n的字符串
+                |
+            枚举一个字母
+                ↓
+    子问题: 构造长为n-1的字符串
+
+    当子问题和原问题是比较相似的，这种原问题到子问题的过程适合使用递归的方式解决。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;回溯&lt;/strong&gt; 有一个&lt;strong&gt;增量&lt;/strong&gt;构造答案的过程，这个过程通常用递归实现&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;递归&lt;/strong&gt;的关键是考虑清楚&lt;strong&gt;边界条件&lt;/strong&gt;和&lt;strong&gt;非边界条件&lt;/strong&gt;的逻辑，剩下交给数学归纳法即可，总是考虑&lt;strong&gt;如何向下递&lt;/strong&gt;和&lt;strong&gt;怎么向上归&lt;/strong&gt;反而容易出错。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;回溯三问：&lt;/strong&gt;
+用path记录递归路径中枚举的字母
+| 问题 | 描述 |
+|------|------|
+| 当前操作？ | 枚举 path[i] 要填入的字母 |
+| 子问题？ | 构造字符串 ≥ i 的部分 |
+| 下一个子问题？ | 构造字符串 ≥ i+1 的部分 |&lt;/p&gt;
+&lt;p&gt;dfs(i)  ——&amp;gt; dfs(i+1)&lt;/p&gt;</content><category term="Leetcode刷题"/><category term="回溯，递归"/></entry><entry><title>Lora微调的原理</title><link href="https://msc376393675.github.io/Lora-finetune-theory.html" rel="alternate"/><published>2025-08-21T20:03:00+08:00</published><updated>2025-08-21T20:03:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-08-21:/Lora-finetune-theory.html</id><summary type="html">&lt;h2&gt;从矩阵奇异值分解到LoRA原理&lt;/h2&gt;
+&lt;p&gt;在当今人工智能领域，大型语言模型 …&lt;/p&gt;</summary><content type="html">&lt;h2&gt;从矩阵奇异值分解到LoRA原理&lt;/h2&gt;
+&lt;p&gt;在当今人工智能领域，大型语言模型（LLM）展现出了惊人的能力，但如何让这些“通才”模型更好地适应特定任务，成为一个“专才”，是学术界和工业界都极为关注的问题。答案就是&lt;strong&gt;微调&lt;/strong&gt;。然而，对动辄拥有数百上千亿参数的庞然大物进行微调，成本极高。&lt;/p&gt;
+&lt;p&gt;为了解决这一挑战，一种名为&lt;strong&gt;LoRA（Low-Rank Adaptation，低秩适配）&lt;/strong&gt;的参数高效微调技术应运而生，它通过巧妙的数学原理，实现了“四两拨千斤”的效果，在不牺牲太多性能的前提下，极大降低了微调的成本。要理解LoRA的精髓，我们需要从一个线性代数中的基本概念——&lt;strong&gt;奇异值分解（Singular Value Decomposition, SVD）&lt;/strong&gt;说起。&lt;/p&gt;
+&lt;h3&gt;奇异值分解（SVD）：抓住矩阵的“主要矛盾”&lt;/h3&gt;
+&lt;p&gt;想象一下，在神经网络中，每一层都包含一个巨大的权重矩阵（$W$），这个矩阵定义了该层如何对输入数据进行线性变换。SVD告诉我们，任何一个矩阵 $W$ 都可以被分解为三个矩阵的乘积：&lt;/p&gt;
+&lt;p&gt;$$W = U \Sigma V^T$$&lt;/p&gt;
+&lt;p&gt;其中：
+* &lt;strong&gt;$U$ 和 $V$&lt;/strong&gt; 是两个&lt;strong&gt;正交矩阵（Orthogonal Matrix）&lt;/strong&gt;。在线性变换的几何意义上，正交矩阵代表着旋转或反射，它不改变数据内部的相对关系和尺寸，只改变其在空间中的朝向。
+* &lt;strong&gt;$\Sigma$&lt;/strong&gt; 是一个&lt;strong&gt;对角矩阵（Diagonal Matrix）&lt;/strong&gt;。它的对角线上的元素被称为&lt;strong&gt;奇异值（Singular Values）&lt;/strong&gt;，并且通常从大到小排列。奇异值非常关键，它们衡量了数据在各个方向上被拉伸或缩放的程度。&lt;strong&gt;一个奇异值越大，说明对应的变换方向（特征）在原始矩阵 $W$ 中所占的“信息量”或“重要性”就越高。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;SVD的核心思想在于，它能够揭示出矩阵中最重要的信息。&lt;/strong&gt; 绝大多数情况下，一个大矩阵的很多奇异值都非常小，接近于零。这意味着这些方向上的变换对最终结果的贡献微乎其微。&lt;/p&gt;
+&lt;p&gt;这就引出了一个至关重要的应用：&lt;strong&gt;低秩近似（Low-Rank Approximation）&lt;/strong&gt;。我们可以保留 $\Sigma$ 矩阵中最大的前 $k$ 个奇异值，并将其他奇异值置为零，得到一个新的对角矩阵 $\Sigma_k$。然后，通过新的矩阵 $U_k$、$\Sigma_k$ 和 $V_k^T$（$U$ 和 $V$ 的前 $k$ 列/行）相乘，我们就可以得到一个原始矩阵 $W$ 的近似矩阵 $W_k$。&lt;/p&gt;
+&lt;p&gt;$$W \approx W_k = U_k \Sigma_k V_k^T$$&lt;/p&gt;
+&lt;p&gt;这个新的矩阵 $W_k$ 的“秩”（Rank）为 $k$，远小于原始矩阵的秩。我们用更少的数据（更小的矩阵）保留了原始矩阵绝大部分的信息，抓住了它的“主要矛盾”。&lt;/p&gt;
+&lt;h3&gt;全参数更新的代价&lt;/h3&gt;
+&lt;p&gt;在介绍LoRA之前，我们先看看传统的&lt;strong&gt;全量微调（Full Fine-tuning）&lt;/strong&gt;。一个预训练好的大模型，其权重矩阵 $W_0$ 包含了从海量数据中学到的通用知识。当我们针对特定任务（如法律文书写作、医疗问答）进行微调时，本质上是在更新这个权重矩阵。&lt;/p&gt;
+&lt;p&gt;全量微调的过程是，在新的任务数据上进行训练，通过反向传播计算梯度，对原始权重矩阵 $W_0$ 的每一个参数进行微小的调整，得到一个新的权重矩阵 $W_1 = W_0 + \Delta W$。这里的 $\Delta W$ 就是权重更新量。&lt;/p&gt;
+&lt;p&gt;这种方法的&lt;strong&gt;主要问题&lt;/strong&gt;在于：
+* &lt;strong&gt;计算成本高昂&lt;/strong&gt;：对于一个百亿参数的模型，存储和计算 $\Delta W$ 需要巨大的显存和计算资源。
+* &lt;strong&gt;存储效率低下&lt;/strong&gt;：为每一个新任务都要存储一份完整的、与原始模型同样大小的新模型副本，成本极高。&lt;/p&gt;
+&lt;h3&gt;LoRA的破局之道&lt;/h3&gt;
+&lt;p&gt;LoRA的提出者们观察到了一个关键现象：在模型适配到新任务的过程中，这个权重更新矩阵 $\Delta W$ 具有“&lt;strong&gt;低内在秩（Low Intrinsic Rank）&lt;/strong&gt;”的特性。通俗地讲，就是这个巨大的更新矩阵，其大部分信息也可以被一个低秩矩阵来近似。&lt;/p&gt;
+&lt;p&gt;这与我们前面提到的SVD低秩近似不谋而合。既然 $\Delta W$ 可以被低秩近似，我们何不直接学习一个低秩的表示，而不是去学习整个庞大的 $\Delta W$ 呢？&lt;/p&gt;
+&lt;p&gt;LoRA的做法正是如此。它冻结了原始的、巨大的预训练权重矩阵 $W_0$，并在旁边增加了一个“旁路”，这个旁路用来模拟 $\Delta W$。它没有直接去学习一个与 $W_0$ 同样大小的 $\Delta W$，而是学习了两个更小的矩阵 $A$ 和 $B$ 的乘积来近似它：&lt;/p&gt;
+&lt;p&gt;$$\Delta W \approx BA$$&lt;/p&gt;
+&lt;p&gt;这里的关键在于矩阵 $A$ 和 $B$ 的维度。假设原始权重 $W_0$ 的维度是 $d \times d$，$A$ 的维度是 $d \times r$，$B$ 的维度是 $r \times d$。这里的 $r$ 就是我们设定的&lt;strong&gt;秩（Rank）&lt;/strong&gt;，它远小于 $d$（例如，$r$ 可以是8、16或64，而 $d$ 可能是几千甚至上万）。&lt;/p&gt;
+&lt;p&gt;这样一来，在微调过程中：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;原始权重 $W_0$ 保持不变&lt;/strong&gt;，不参与训练。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;我们只训练参数量极小的矩阵 $A$ 和 $B$&lt;/strong&gt;。需要更新的参数数量从 $d \times d$ 锐减到 $d \times r + r \times d = 2dr$。当 $r \ll d$ 时，参数量实现了数量级的下降。&lt;/li&gt;
+&lt;li&gt;在进行前向传播时，模型的输出 $y$ 由两部分组成：原始模型的输出和旁路矩阵的输出。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;$$y = W_0x + \Delta Wx = W_0x + (BA)x$$&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;LoRA与SVD的联系在于，它背后的核心假设与SVD能够实现低秩近似的原理是相通的。&lt;/strong&gt; SVD从理论上证明了任何矩阵都可以通过保留其最重要的奇异值来实现高效的低秩近似。LoRA则在实践中假设模型微调的权重更新也符合这种“信息集中在少数关键方向”的特性，因此可以直接去学习一个低秩的更新表示，从而绕过了计算和存储整个庞大更新矩阵的难题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;LoRA的优势总结：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;高效训练&lt;/strong&gt;：需要训练的参数量大幅减少，显著降低了对计算资源的需求。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;高效存储和切换&lt;/strong&gt;：对于每个新任务，只需存储和加载小得多的矩阵 $A$ 和 $B$（通常只有几MB），而无需保存整个模型的副本。这使得在多个任务之间切换变得极为方便。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;性能相当&lt;/strong&gt;：大量实验证明，通过精心选择秩 $r$ 和其他超参数，LoRA可以在许多任务上达到与全量微调相媲美甚至更好的性能。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;总而言之，从SVD揭示的矩阵内在结构的重要性，到LoRA巧妙地将这一原理应用于大模型微调，我们看到数学理论是如何为解决复杂的工程问题提供深刻洞见的。LoRA通过抓住模型更新的“主要矛盾”，实现了高效、低成本的个性化模型定制，极大地推动了大型语言模型在更广泛领域的应用和发展。&lt;/p&gt;
+&lt;h3&gt;LoRA的初始化以及关键参数&lt;/h3&gt;
+&lt;p&gt;通常我们会将里&lt;strong&gt;ΔW≈BA&lt;/strong&gt;的&lt;strong&gt;矩阵B&lt;/strong&gt;称为降维矩阵，采用&lt;strong&gt;全的初始化&lt;/strong&gt;，这样在一开始W' = W + ΔW = W, 因为此时 ΔW = 0。&lt;strong&gt;矩阵B&lt;/strong&gt;称为升维矩阵，通常是采用&lt;strong&gt;高斯分布随机初始化&lt;/strong&gt;，这样即可完成初始化步骤。&lt;/p&gt;</content><category term="LLM学习"/><category term="Lora微调"/><category term="LLM"/></entry><entry><title>通过frp实现Ollama内网穿透：从零到一部署指南</title><link href="https://msc376393675.github.io/ollama-frp-deployment.html" rel="alternate"/><published>2025-08-05T10:05:00+08:00</published><updated>2025-08-05T10:05:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-08-05:/ollama-frp-deployment.html</id><summary type="html">&lt;p&gt;本文档旨在详细记录如何使用 &lt;code&gt;frp&lt;/code&gt; 工具，将一台部署在内网的 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;本文档旨在详细记录如何使用 &lt;code&gt;frp&lt;/code&gt; 工具，将一台部署在内网的Ollama大模型服务，安全、稳定地暴露到公网上，使得任何能连接互联网的设备都可以访问。&lt;/p&gt;
+&lt;h2&gt;准备工作&lt;/h2&gt;
+&lt;p&gt;在开始之前，请确保您拥有以下两项基本资源：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Ollama本地机&lt;/strong&gt;：一台已经安装并成功运行Ollama服务的电脑（在本文中，这是一台Linux系统的机器）。这将是我们的 &lt;strong&gt;frpc客户端&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;云服务器&lt;/strong&gt;：一台拥有固定公网IP地址的云服务器（在本文中，这是一台Windows Server 2022系统的京东云主机）。这将是我们的 &lt;strong&gt;frps服务端&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;部署步骤&lt;/h2&gt;
+&lt;h3&gt;&lt;strong&gt;第1步：在两台机器上准备frp程序&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;frp&lt;/code&gt;的唯一官方下载渠道是其GitHub Releases页面。请为您的两台机器下载对应的正确版本。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;云服务器 (Windows Server)&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;下载&lt;/strong&gt;：&lt;code&gt;frp_..._windows_amd64.zip&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;操作&lt;/strong&gt;：在服务器上创建一个永久性文件夹（例如 &lt;code&gt;C:\frp&lt;/code&gt;），并将下载的压缩包解压至此。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Ollama本地机 (Linux)&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;下载&lt;/strong&gt;：&lt;code&gt;frp_..._linux_amd64.tar.gz&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;操作&lt;/strong&gt;：在本地机上创建一个文件夹（例如 &lt;code&gt;~/frp&lt;/code&gt;），并使用 &lt;code&gt;tar -zxvf ...&lt;/code&gt; 命令将压缩包解压至此。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;&lt;strong&gt;第2步：配置云服务器 (frps服务端)&lt;/strong&gt;&lt;/h3&gt;
+&lt;h4&gt;2.1 创建 &lt;code&gt;frps.toml&lt;/code&gt; 配置文件&lt;/h4&gt;
+&lt;p&gt;在云服务器的 &lt;code&gt;C:\frp&lt;/code&gt; 目录下，创建一个名为 &lt;code&gt;frps.toml&lt;/code&gt; 的文件，并填入以下内容。这个文件告诉frp服务端要监听哪个端口，以及用于认证的密码。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# C:\frp\frps.toml&lt;/span&gt;
+&lt;span class="n"&gt;bindPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;7000&lt;/span&gt;
+&lt;span class="n"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;YourSuperSecretToken123&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 请使用您自己的复杂密码&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;2.2 配置防火墙 (关键步骤)&lt;/h4&gt;
+&lt;p&gt;为了让外部请求能够到达&lt;code&gt;frps&lt;/code&gt;服务，需要打通两层防火墙。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;云平台安全组&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;登录您的云服务商（如京东云）的网页控制台。&lt;/li&gt;
+&lt;li&gt;找到您服务器实例的“安全组”配置。&lt;/li&gt;
+&lt;li&gt;添加入站规则，&lt;strong&gt;允许&lt;/strong&gt;以下两个TCP端口的访问，源IP设置为 &lt;code&gt;0.0.0.0/0&lt;/code&gt;：&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;7000&lt;/code&gt; (用于frp客户端和服务端之间的通信)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;11434&lt;/code&gt; (用于外部用户访问您的Ollama穿透服务)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Windows Server系统防火墙&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在服务器上打开“高级安全 Windows Defender 防火墙”。&lt;/li&gt;
+&lt;li&gt;创建一条新的“入站规则”，允许TCP协议访问本地端口 &lt;code&gt;7000&lt;/code&gt; 和 &lt;code&gt;11434&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4&gt;2.3 设置为Windows服务 (推荐)&lt;/h4&gt;
+&lt;p&gt;为了让&lt;code&gt;frps&lt;/code&gt;能在后台长期稳定运行，我们使用&lt;code&gt;nssm&lt;/code&gt;工具将其注册为Windows服务。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;下载&lt;code&gt;nssm&lt;/code&gt;并将其&lt;code&gt;nssm.exe&lt;/code&gt;文件放入&lt;code&gt;C:\frp&lt;/code&gt;目录。&lt;/li&gt;
+&lt;li&gt;以管理员身份打开命令提示符，运行 &lt;code&gt;.\nssm.exe install frps&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;在弹出的图形界面中设置：&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Path&lt;/strong&gt;: &lt;code&gt;C:\frp\frps.exe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Startup directory&lt;/strong&gt;: &lt;code&gt;C:\frp&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arguments&lt;/strong&gt;: &lt;code&gt;-c C:\frp\frps.toml&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;安装并启动服务（通过 &lt;code&gt;nssm start frps&lt;/code&gt; 或 &lt;code&gt;services.msc&lt;/code&gt;）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;&lt;strong&gt;第3步：配置Ollama本地机 (frpc客户端)&lt;/strong&gt;&lt;/h3&gt;
+&lt;h4&gt;3.1 创建 &lt;code&gt;frpc.toml&lt;/code&gt; 配置文件&lt;/h4&gt;
+&lt;p&gt;在Ollama本地机的 &lt;code&gt;~/frp&lt;/code&gt; 目录下，创建 &lt;code&gt;frpc.toml&lt;/code&gt; 文件，并填入以下内容。这个文件告诉客户端去连接哪个公网服务器，并如何映射本地服务。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# ~/frp/frpc.toml&lt;/span&gt;
+&lt;span class="n"&gt;serverAddr&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;117.72.161.206&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="c1"&gt;# 替换为您的云服务器公网IP&lt;/span&gt;
+&lt;span class="n"&gt;serverPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;7000&lt;/span&gt;
+&lt;span class="n"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;YourSuperSecretToken123&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 必须与frps.toml中的密码一致&lt;/span&gt;
+
+&lt;span class="k"&gt;[[proxies]]&lt;/span&gt;
+&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ollama-service&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;tcp&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;localIP&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;127.0.0.1&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;localPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;11434&lt;/span&gt;
+&lt;span class="n"&gt;remotePort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;11434&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;3.2 设置为Linux服务 (推荐)&lt;/h4&gt;
+&lt;p&gt;同样，为了让&lt;code&gt;frpc&lt;/code&gt;在Linux上后台运行，我们使用&lt;code&gt;systemd&lt;/code&gt;。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;赋予执行权限&lt;/strong&gt;:
+    &lt;code&gt;bash
+    chmod +x ~/frp/frpc&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;创建服务文件&lt;/strong&gt;:
+    &lt;code&gt;bash
+    sudo nano /etc/systemd/system/frpc.service&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;填入服务配置&lt;/strong&gt; (请务必使用绝对路径):
+    ```ini
+    [Unit]
+    Description=frp client
+    After=network.target&lt;/p&gt;
+&lt;p&gt;[Service]
+Type=simple
+User=nobody
+Restart=on-failure
+RestartSec=5s
+ExecStart=/path/to/your/frp/frpc -c /path/to/your/frp/frpc.toml
+WorkingDirectory=/path/to/your/frp/&lt;/p&gt;
+&lt;p&gt;[Install]
+WantedBy=multi-user.target
+&lt;code&gt;4.  **启动服务**:&lt;/code&gt;bash
+sudo systemctl enable frpc
+sudo systemctl start frpc
+```&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;&lt;strong&gt;第4步：启动服务并验证&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;确保两端的服务都已启动后，您可以在任何能上网的设备上打开终端，运行以下命令进行最终验证：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;curl&lt;span class="w"&gt; &lt;/span&gt;http://117.72.161.206:11434
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;如果屏幕上返回 &lt;code&gt;Ollama is running&lt;/code&gt;，则代表您已成功实现内网穿透！&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;第5步：在代码中调用&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;最后，将您应用程序中调用Ollama的地址，更新为新的公网地址即可。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;示例 (&lt;code&gt;llm_wrapper.py&lt;/code&gt;)&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;OLLAMA_BASE_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;environ&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;OLLAMA_BASE_URL&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;http://117.72.161.206:11434&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;hr&gt;</content><category term="LLM学习"/><category term="Ollama"/><category term="frp"/><category term="内网穿透"/><category term="服务器"/></entry><entry><title>Llama Factory 微调详细步骤记录</title><link href="https://msc376393675.github.io/llama-factory-finetune-steps.html" rel="alternate"/><published>2025-07-21T10:00:00+08:00</published><updated>2025-07-21T10:00:00+08:00</updated><author><name>Shichen Ma</name></author><id>tag:msc376393675.github.io,2025-07-21:/llama-factory-finetune-steps.html</id><summary type="html">&lt;p&gt;本文档旨在提供一个清晰、可重复的端到端操作流程，涵盖从 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;本文档旨在提供一个清晰、可重复的端到端操作流程，涵盖从 &lt;strong&gt;安装 Llama Factory&lt;/strong&gt;、&lt;strong&gt;执行模型微调&lt;/strong&gt;，到最终将微调产物&lt;strong&gt;部署到 Ollama 本地服务&lt;/strong&gt;的全过程。&lt;/p&gt;
+&lt;h2&gt;章节一：Llama Factory 的安装与启动&lt;/h2&gt;
+&lt;p&gt;本章节指导您完成 Llama Factory 的环境准备和安装。&lt;/p&gt;
+&lt;h3&gt;1. 环境准备 (Environment Preparation)&lt;/h3&gt;
+&lt;p&gt;在开始之前，请确保您的系统满足以下条件：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;操作系统&lt;/strong&gt;: Windows 10/11。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;硬件&lt;/strong&gt;: 一块支持 CUDA 的 NVIDIA 显卡 (建议 8GB VRAM 以上)。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;软件&lt;/strong&gt;:&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Git&lt;/strong&gt;: 用于克隆项目仓库。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Conda&lt;/strong&gt;: 用于管理 Python 环境，强烈推荐。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Python&lt;/strong&gt;: 版本需为 &lt;code&gt;3.10&lt;/code&gt; 或 &lt;code&gt;3.11&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CUDA Toolkit&lt;/strong&gt;: 与您的显卡驱动兼容的版本 (例如 &lt;code&gt;11.8&lt;/code&gt; 或 &lt;code&gt;12.1&lt;/code&gt;)。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Visual Studio&lt;/strong&gt;: 已安装，并包含 "使用 C++ 的桌面开发" 工作负载 (这是编译 &lt;code&gt;llama.cpp&lt;/code&gt; 所必需的)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;2. 安装 Llama Factory&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;打开终端&lt;/strong&gt; (推荐使用 Conda 自带的 Anaconda Prompt)。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;创建并激活 Conda 环境&lt;/strong&gt;：
+    &lt;code&gt;bash
+    conda create --name sft python=3.10 -y
+    conda activate sft&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;安装 PyTorch&lt;/strong&gt; (请根据您的 CUDA 版本从 &lt;a href="https://pytorch.org/get-started/locally/"&gt;PyTorch 官网&lt;/a&gt; 获取对应的命令)：
+    &lt;code&gt;bash
+    # 示例 (CUDA 12.1)
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;克隆 Llama Factory 仓库&lt;/strong&gt;：
+    &lt;code&gt;bash
+    git clone https://github.com/hiyouga/LLaMA-Factory.git&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;进入项目目录并安装依赖&lt;/strong&gt;：
+    &lt;code&gt;bash
+    cd LLaMA-Factory
+    pip install -e .[metrics]&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;3. 启动 Web UI&lt;/h3&gt;
+&lt;p&gt;Llama Factory 提供了便捷的图形化界面来简化微调操作。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在已激活 &lt;code&gt;sft&lt;/code&gt; 环境的终端中，执行以下命令：
+    &lt;code&gt;bash
+    llamafactory-cli webui&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;启动成功后，终端会显示一个本地网址 (通常是 &lt;code&gt;http://127.0.0.1:7860&lt;/code&gt;)。在浏览器中打开此地址，即可看到 Llama Factory 的操作界面。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;章节二：使用 Llama Factory 进行模型微调&lt;/h2&gt;
+&lt;p&gt;本章节简述在 Web UI 中完成一次典型的 LoRA 微调任务的核心步骤。&lt;/p&gt;
+&lt;p&gt;微调完成后，您将得到一个 LoRA 适配器文件夹，&lt;strong&gt;这正是我们后续部署操作的起点&lt;/strong&gt;。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;选择模型 (Model)&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;模型名称&lt;/code&gt; 下拉框中，选择或输入您要微调的基础模型，例如 &lt;code&gt;Qwen/Qwen2-0.5B&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;Llama Factory 会自动从 Hugging Face 下载模型。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;选择微调方法 (Train -&amp;gt; Method)&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;微调方法&lt;/code&gt; 下拉框中，选择 &lt;code&gt;lora&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;选择数据集 (Train -&amp;gt; Dataset)&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;数据集&lt;/code&gt; 下拉框中，选择您用于训练的数据集。您可以使用内置的数据集，也可以上传自己的数据。&lt;/li&gt;
+&lt;li&gt;对于意图识别等任务，通常使用自定义的 &lt;code&gt;json&lt;/code&gt; 文件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;设置训练参数 (Train -&amp;gt; Arguments)&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;输出目录&lt;/strong&gt;: 这里是微调产物（LoRA适配器）的保存位置。默认在 &lt;code&gt;LLaMA-Factory/saves/&lt;/code&gt; 目录下。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;学习率&lt;/strong&gt;: 例如 &lt;code&gt;1e-4&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;训练轮数&lt;/strong&gt;: 例如 &lt;code&gt;3.0&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;LoRA 秩 (LoRA rank)&lt;/strong&gt;: 通常设为 &lt;code&gt;8&lt;/code&gt; 或 &lt;code&gt;16&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;最大样本长度&lt;/strong&gt;: 根据您的数据和显存进行调整，例如 &lt;code&gt;1024&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;开始训练 (Run -&amp;gt; Start)&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;点击 &lt;code&gt;开始&lt;/code&gt; 按钮启动微调过程。您可以在终端和UI的日志区域观察训练进度。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;找到训练产物&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;训练完成后，进入您设置的&lt;strong&gt;输出目录&lt;/strong&gt;，例如 &lt;code&gt;D:\GitProjects\LLaMA-Factory\saves\Qwen2-0.5B\lora\train_...&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;这个文件夹就是我们需要的 &lt;strong&gt;&lt;code&gt;[你的LoRA适配器路径]&lt;/code&gt;&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;em&gt;（以下是您提供的原始内容，已重构为后续步骤）&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;章节三：合并 LoRA 适配器&lt;/h2&gt;
+&lt;p&gt;此步骤将 LoRA 权重合并到基础模型中，生成一个完整的、可独立运行的 Hugging Face 格式模型。&lt;/p&gt;
+&lt;h3&gt;1. 准备工作&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;项目目录&lt;/strong&gt;: 按照以下结构手动创建文件夹，用于存放后续所有产物。
+    &lt;code&gt;D:/AI_Models/
+    └── my-intent-model/
+        ├── 1_merged_hf/
+        ├── 2_gguf_conversion/
+        └── 3_ollama_deploy/&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;占位符&lt;/strong&gt;: 在后续命令中，请将以下占位符替换为您的实际信息：&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;[基础模型名称]&lt;/code&gt;: &lt;code&gt;Qwen/Qwen2-0.5B&lt;/code&gt; (与微调时使用的模型一致)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[你的LoRA适配器路径]&lt;/code&gt;: &lt;code&gt;D:\GitProjects\LLaMA-Factory\saves\Qwen2-0.5B\lora\train_...&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[你的项目总目录]&lt;/code&gt;: &lt;code&gt;D:\AI_Models\my-intent-model&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[你的llama.cpp目录]&lt;/code&gt;: &lt;code&gt;D:\GitProjects\llama.cpp&lt;/code&gt; (假设您已克隆并编译好)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[你的Ollama模型名称]&lt;/code&gt;: &lt;code&gt;my-intent-model&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. 执行合并&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;打开终端&lt;/strong&gt; (cmd 或 PowerShell)。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;激活 Conda 环境&lt;/strong&gt;：
+    &lt;code&gt;bash
+    conda activate sft&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;执行合并命令&lt;/strong&gt; (Windows &lt;code&gt;cmd&lt;/code&gt; 中使用 &lt;code&gt;^&lt;/code&gt; 符号换行，方便阅读)：
+    &lt;code&gt;bash
+    llamafactory-cli export ^
+        --model_name_or_path [基础模型名称] ^
+        --adapter_name_or_path "[你的LoRA适配器路径]" ^
+        --template qwen ^
+        --export_dir "[你的项目总目录]\1_merged_hf"&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;产物&lt;/strong&gt;：此命令成功后，&lt;code&gt;1_merged_hf&lt;/code&gt; 文件夹内会包含合并好的模型文件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;章节四：转换为 GGUF 格式&lt;/h2&gt;
+&lt;p&gt;此步骤将 Hugging Face 格式的模型转换为 &lt;code&gt;llama.cpp&lt;/code&gt; 和 Ollama 使用的 GGUF 格式，并进行量化以减小体积。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;打开“Developer Command Prompt for VS”&lt;/strong&gt; (VS 开发者命令提示符)。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;激活 Conda 环境&lt;/strong&gt;：
+    &lt;code&gt;bash
+    conda activate sft&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;4.1 转换为 F16 GGUF (未量化)&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;python&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[你的llama.cpp目录]\convert_hf_to_gguf.py&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[你的项目总目录]\1_merged_hf&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;--outfile&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[你的项目总目录]\2_gguf_conversion\model-f16.gguf&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;--outtype&lt;span class="w"&gt; &lt;/span&gt;f16
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;产物&lt;/strong&gt;：生成一个较大的 &lt;code&gt;model-f16.gguf&lt;/code&gt; 文件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4.2 量化为 Q4_K_M GGUF (最终模型)&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="s2"&gt;&amp;quot;[你的llama.cpp目录]\build\bin\Release\llama-quantize.exe&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[你的项目总目录]\2_gguf_conversion\model-f16.gguf&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[你的项目总目录]\2_gguf_conversion\model-q4_k_m.gguf&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;q4_k_m
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;产物&lt;/strong&gt;：生成最终的模型文件 &lt;code&gt;model-q4_k_m.gguf&lt;/code&gt;。&lt;strong&gt;这是部署到 Ollama 所需的核心文件。&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;章节五：加载到 Ollama&lt;/h2&gt;
+&lt;h3&gt;1. 创建 Modelfile&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;[你的项目总目录]\3_ollama_deploy\&lt;/code&gt; 文件夹内，创建一个名为 &lt;code&gt;Modelfile&lt;/code&gt; 的文件（&lt;strong&gt;没有文件后缀名&lt;/strong&gt;）。&lt;/li&gt;
+&lt;li&gt;文件内容应包含以下一行，使用相对路径指向最终的 GGUF 文件：
+    &lt;code&gt;FROM ../2_gguf_conversion/model-q4_k_m.gguf&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. 创建并运行 Ollama 模型&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;打开一个&lt;strong&gt;新的、普通的&lt;/strong&gt;终端窗口（cmd 或 PowerShell）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;必须&lt;/strong&gt;先切换到 &lt;code&gt;3_ollama_deploy&lt;/code&gt; 目录，这样 &lt;code&gt;Modelfile&lt;/code&gt; 中的相对路径才能生效。
+    &lt;code&gt;bash
+    cd /d "[你的项目总目录]\3_ollama_deploy"&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;创建模型&lt;/strong&gt;：
+    &lt;code&gt;bash
+    ollama create [你的Ollama模型名称] -f ./Modelfile&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;运行模型&lt;/strong&gt;：
+    &lt;code&gt;bash
+    ollama run [你的Ollama模型名称]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;章节六：清理冗余文件&lt;/h2&gt;
+&lt;p&gt;在您确认 Ollama 模型可以成功运行后，可以删除以下中间文件以释放大量磁盘空间。&lt;/p&gt;
+&lt;h3&gt;可以安全删除的产物&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;[你的项目总目录]\1_merged_hf\&lt;/code&gt;&lt;/strong&gt; (文件夹)&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;说明&lt;/strong&gt;：合并后的全精度 Hugging Face 模型，体积较大，仅用于生成 GGUF。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;[你的项目总目录]\2_gguf_conversion\model-f16.gguf&lt;/code&gt;&lt;/strong&gt; (文件)&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;说明&lt;/strong&gt;：中间步骤生成的全精度 GGUF 文件，体积非常大，仅用于生成最终的量化版 GGUF。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;建议保留的产物&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;[你的项目总目录]\2_gguf_conversion\model-q4_k_m.gguf&lt;/code&gt;&lt;/strong&gt; (文件)&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;说明&lt;/strong&gt;：您所有工作的最终产物，是模型的“母版”。强烈建议&lt;strong&gt;备份并保留&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;[你的项目总目录]\3_ollama_deploy\&lt;/code&gt;&lt;/strong&gt; (文件夹)&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;说明&lt;/strong&gt;：包含了 &lt;code&gt;Modelfile&lt;/code&gt;，是您模型的“配方”，建议和 GGUF 文件一起保留。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;[你的llama.cpp目录]\build\&lt;/code&gt;&lt;/strong&gt; (文件夹)&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;说明&lt;/strong&gt;：包含了编译好的 &lt;code&gt;llama-quantize.exe&lt;/code&gt; 等工具，保留它可以让您在处理下一个模型时跳过编译步骤。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</content><category term="LLM学习"/><category term="Llama Factory"/><category term="LLM"/><category term="微调"/></entry></feed>

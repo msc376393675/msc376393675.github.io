@@ -1,0 +1,420 @@
+
+<!DOCTYPE HTML>
+<!--
+	Dopetrope 2.0 by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+			<title>msc的技术小站</title>
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta charset="utf-8" />
+			<link href="https://msc376393675.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Full Atom Feed" />
+			<link href="https://msc376393675.github.io/feeds/llmxue-xi.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Categories Atom Feed" />
+			<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,900,300italic" rel="stylesheet" />
+				<link rel="stylesheet" href="/theme/css/pygment.css" />
+			<noscript>
+				<link rel="stylesheet" href="/theme/css/skel-noscript.css" />
+				<link rel="stylesheet" href="/theme/css/style.css" />
+				<link rel="stylesheet" href="/theme/css/style-desktop.css" />
+			</noscript>
+		<script src="https://kit.fontawesome.com/2f9851b6f6.js" crossorigin="anonymous"></script>
+		
+	</head>
+	<body class="no-sidebar">
+		<!-- Header Wrapper -->
+			<div id="header-wrapper">
+				<div class="container">
+					<div class="row">
+						<div class="12u">
+						
+							<!-- Header -->
+								<section id="header">
+									
+									<!-- Logo -->
+									<h1><a href="https://msc376393675.github.io/">msc的技术小站</a></h1>
+									
+									<!-- Nav -->
+										<nav id="nav">
+											<ul>
+											</ul>
+										</nav>
+
+								</section>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		
+		<!-- Main Wrapper -->
+			<div id="main-wrapper">
+				<div class="container">
+<div class="row">
+	<div class="12u">
+			<section>
+				<div>
+					<div class="row">
+						<div class="12u skel-cell-mainContent">
+							<!-- Content -->
+								<article class="box is-post">
+									<div class="post-infos">
+										<ul class="tags">
+											<li><a class="button" href="category/llmxue-xi.html">Llm学习</a></li>
+												<li><a class="button button-alt" href="tag/llama-factory.html">Llama factory</a></li>
+
+												<li><a class="button button-alt" href="tag/llm.html">Llm</a></li>
+
+												<li><a class="button button-alt" href="tag/wei-diao.html">微调</a></li>
+
+										</ul>
+									</div>
+
+									<div class="pennant pennant-alt date">2025-07-21</div>
+									<h2>Llama Factory 微调详细步骤记录</h2>
+									<p>本文档旨在提供一个清晰、可重复的端到端操作流程，涵盖从 <strong>安装 Llama Factory</strong>、<strong>执行模型微调</strong>，到最终将微调产物<strong>部署到 Ollama 本地服务</strong>的全过程。</p>
+<h2>章节一：Llama Factory 的安装与启动</h2>
+<p>本章节指导您完成 Llama Factory 的环境准备和安装。</p>
+<h3>1. 环境准备 (Environment Preparation)</h3>
+<p>在开始之前，请确保您的系统满足以下条件：</p>
+<ol>
+<li><strong>操作系统</strong>: Windows 10/11。</li>
+<li><strong>硬件</strong>: 一块支持 CUDA 的 NVIDIA 显卡 (建议 8GB VRAM 以上)。</li>
+<li><strong>软件</strong>:<ul>
+<li><strong>Git</strong>: 用于克隆项目仓库。</li>
+<li><strong>Conda</strong>: 用于管理 Python 环境，强烈推荐。</li>
+<li><strong>Python</strong>: 版本需为 <code>3.10</code> 或 <code>3.11</code>。</li>
+<li><strong>CUDA Toolkit</strong>: 与您的显卡驱动兼容的版本 (例如 <code>11.8</code> 或 <code>12.1</code>)。</li>
+<li><strong>Visual Studio</strong>: 已安装，并包含 "使用 C++ 的桌面开发" 工作负载 (这是编译 <code>llama.cpp</code> 所必需的)。</li>
+</ul>
+</li>
+</ol>
+<h3>2. 安装 Llama Factory</h3>
+<ol>
+<li><strong>打开终端</strong> (推荐使用 Conda 自带的 Anaconda Prompt)。</li>
+<li><strong>创建并激活 Conda 环境</strong>：
+    <code>bash
+    conda create --name sft python=3.10 -y
+    conda activate sft</code></li>
+<li><strong>安装 PyTorch</strong> (请根据您的 CUDA 版本从 <a href="https://pytorch.org/get-started/locally/">PyTorch 官网</a> 获取对应的命令)：
+    <code>bash
+    # 示例 (CUDA 12.1)
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code></li>
+<li><strong>克隆 Llama Factory 仓库</strong>：
+    <code>bash
+    git clone https://github.com/hiyouga/LLaMA-Factory.git</code></li>
+<li><strong>进入项目目录并安装依赖</strong>：
+    <code>bash
+    cd LLaMA-Factory
+    pip install -e .[metrics]</code></li>
+</ol>
+<h3>3. 启动 Web UI</h3>
+<p>Llama Factory 提供了便捷的图形化界面来简化微调操作。</p>
+<ol>
+<li>在已激活 <code>sft</code> 环境的终端中，执行以下命令：
+    <code>bash
+    llamafactory-cli webui</code></li>
+<li>启动成功后，终端会显示一个本地网址 (通常是 <code>http://127.0.0.1:7860</code>)。在浏览器中打开此地址，即可看到 Llama Factory 的操作界面。</li>
+</ol>
+<h2>章节二：使用 Llama Factory 进行模型微调</h2>
+<p>本章节简述在 Web UI 中完成一次典型的 LoRA 微调任务的核心步骤。</p>
+<p>微调完成后，您将得到一个 LoRA 适配器文件夹，<strong>这正是我们后续部署操作的起点</strong>。</p>
+<ol>
+<li>
+<p><strong>选择模型 (Model)</strong>：</p>
+<ul>
+<li>在 <code>模型名称</code> 下拉框中，选择或输入您要微调的基础模型，例如 <code>Qwen/Qwen2-0.5B</code>。</li>
+<li>Llama Factory 会自动从 Hugging Face 下载模型。</li>
+</ul>
+</li>
+<li>
+<p><strong>选择微调方法 (Train -&gt; Method)</strong>：</p>
+<ul>
+<li>在 <code>微调方法</code> 下拉框中，选择 <code>lora</code>。</li>
+</ul>
+</li>
+<li>
+<p><strong>选择数据集 (Train -&gt; Dataset)</strong>：</p>
+<ul>
+<li>在 <code>数据集</code> 下拉框中，选择您用于训练的数据集。您可以使用内置的数据集，也可以上传自己的数据。</li>
+<li>对于意图识别等任务，通常使用自定义的 <code>json</code> 文件。</li>
+</ul>
+</li>
+<li>
+<p><strong>设置训练参数 (Train -&gt; Arguments)</strong>：</p>
+<ul>
+<li><strong>输出目录</strong>: 这里是微调产物（LoRA适配器）的保存位置。默认在 <code>LLaMA-Factory/saves/</code> 目录下。</li>
+<li><strong>学习率</strong>: 例如 <code>1e-4</code>。</li>
+<li><strong>训练轮数</strong>: 例如 <code>3.0</code>。</li>
+<li><strong>LoRA 秩 (LoRA rank)</strong>: 通常设为 <code>8</code> 或 <code>16</code>。</li>
+<li><strong>最大样本长度</strong>: 根据您的数据和显存进行调整，例如 <code>1024</code>。</li>
+</ul>
+</li>
+<li>
+<p><strong>开始训练 (Run -&gt; Start)</strong>：</p>
+<ul>
+<li>点击 <code>开始</code> 按钮启动微调过程。您可以在终端和UI的日志区域观察训练进度。</li>
+</ul>
+</li>
+<li>
+<p><strong>找到训练产物</strong>：</p>
+<ul>
+<li>训练完成后，进入您设置的<strong>输出目录</strong>，例如 <code>D:\GitProjects\LLaMA-Factory\saves\Qwen2-0.5B\lora\train_...</code>。</li>
+<li>这个文件夹就是我们需要的 <strong><code>[你的LoRA适配器路径]</code></strong>。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p><em>（以下是您提供的原始内容，已重构为后续步骤）</em></p>
+<h2>章节三：合并 LoRA 适配器</h2>
+<p>此步骤将 LoRA 权重合并到基础模型中，生成一个完整的、可独立运行的 Hugging Face 格式模型。</p>
+<h3>1. 准备工作</h3>
+<ul>
+<li><strong>项目目录</strong>: 按照以下结构手动创建文件夹，用于存放后续所有产物。
+    <code>D:/AI_Models/
+    └── my-intent-model/
+        ├── 1_merged_hf/
+        ├── 2_gguf_conversion/
+        └── 3_ollama_deploy/</code></li>
+<li><strong>占位符</strong>: 在后续命令中，请将以下占位符替换为您的实际信息：<ul>
+<li><code>[基础模型名称]</code>: <code>Qwen/Qwen2-0.5B</code> (与微调时使用的模型一致)</li>
+<li><code>[你的LoRA适配器路径]</code>: <code>D:\GitProjects\LLaMA-Factory\saves\Qwen2-0.5B\lora\train_...</code></li>
+<li><code>[你的项目总目录]</code>: <code>D:\AI_Models\my-intent-model</code></li>
+<li><code>[你的llama.cpp目录]</code>: <code>D:\GitProjects\llama.cpp</code> (假设您已克隆并编译好)</li>
+<li><code>[你的Ollama模型名称]</code>: <code>my-intent-model</code></li>
+</ul>
+</li>
+</ul>
+<h3>2. 执行合并</h3>
+<ol>
+<li><strong>打开终端</strong> (cmd 或 PowerShell)。</li>
+<li><strong>激活 Conda 环境</strong>：
+    <code>bash
+    conda activate sft</code></li>
+<li><strong>执行合并命令</strong> (Windows <code>cmd</code> 中使用 <code>^</code> 符号换行，方便阅读)：
+    <code>bash
+    llamafactory-cli export ^
+        --model_name_or_path [基础模型名称] ^
+        --adapter_name_or_path "[你的LoRA适配器路径]" ^
+        --template qwen ^
+        --export_dir "[你的项目总目录]\1_merged_hf"</code><ul>
+<li><strong>产物</strong>：此命令成功后，<code>1_merged_hf</code> 文件夹内会包含合并好的模型文件。</li>
+</ul>
+</li>
+</ol>
+<h2>章节四：转换为 GGUF 格式</h2>
+<p>此步骤将 Hugging Face 格式的模型转换为 <code>llama.cpp</code> 和 Ollama 使用的 GGUF 格式，并进行量化以减小体积。</p>
+<ol>
+<li><strong>打开“Developer Command Prompt for VS”</strong> (VS 开发者命令提示符)。</li>
+<li><strong>激活 Conda 环境</strong>：
+    <code>bash
+    conda activate sft</code></li>
+</ol>
+<h3>4.1 转换为 F16 GGUF (未量化)</h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span><span class="s2">&quot;[你的llama.cpp目录]\convert_hf_to_gguf.py&quot;</span><span class="w"> </span><span class="s2">&quot;[你的项目总目录]\1_merged_hf&quot;</span><span class="w"> </span>--outfile<span class="w"> </span><span class="s2">&quot;[你的项目总目录]\2_gguf_conversion\model-f16.gguf&quot;</span><span class="w"> </span>--outtype<span class="w"> </span>f16
+</code></pre></div>
+
+<ul>
+<li><strong>产物</strong>：生成一个较大的 <code>model-f16.gguf</code> 文件。</li>
+</ul>
+<h3>4.2 量化为 Q4_K_M GGUF (最终模型)</h3>
+<div class="highlight"><pre><span></span><code><span class="s2">&quot;[你的llama.cpp目录]\build\bin\Release\llama-quantize.exe&quot;</span><span class="w"> </span><span class="s2">&quot;[你的项目总目录]\2_gguf_conversion\model-f16.gguf&quot;</span><span class="w"> </span><span class="s2">&quot;[你的项目总目录]\2_gguf_conversion\model-q4_k_m.gguf&quot;</span><span class="w"> </span>q4_k_m
+</code></pre></div>
+
+<ul>
+<li><strong>产物</strong>：生成最终的模型文件 <code>model-q4_k_m.gguf</code>。<strong>这是部署到 Ollama 所需的核心文件。</strong></li>
+</ul>
+<h2>章节五：加载到 Ollama</h2>
+<h3>1. 创建 Modelfile</h3>
+<ul>
+<li>在 <code>[你的项目总目录]\3_ollama_deploy\</code> 文件夹内，创建一个名为 <code>Modelfile</code> 的文件（<strong>没有文件后缀名</strong>）。</li>
+<li>文件内容应包含以下一行，使用相对路径指向最终的 GGUF 文件：
+    <code>FROM ../2_gguf_conversion/model-q4_k_m.gguf</code></li>
+</ul>
+<h3>2. 创建并运行 Ollama 模型</h3>
+<ul>
+<li>打开一个<strong>新的、普通的</strong>终端窗口（cmd 或 PowerShell）。</li>
+<li><strong>必须</strong>先切换到 <code>3_ollama_deploy</code> 目录，这样 <code>Modelfile</code> 中的相对路径才能生效。
+    <code>bash
+    cd /d "[你的项目总目录]\3_ollama_deploy"</code></li>
+<li><strong>创建模型</strong>：
+    <code>bash
+    ollama create [你的Ollama模型名称] -f ./Modelfile</code></li>
+<li><strong>运行模型</strong>：
+    <code>bash
+    ollama run [你的Ollama模型名称]</code></li>
+</ul>
+<h2>章节六：清理冗余文件</h2>
+<p>在您确认 Ollama 模型可以成功运行后，可以删除以下中间文件以释放大量磁盘空间。</p>
+<h3>可以安全删除的产物</h3>
+<ul>
+<li><strong><code>[你的项目总目录]\1_merged_hf\</code></strong> (文件夹)<ul>
+<li><strong>说明</strong>：合并后的全精度 Hugging Face 模型，体积较大，仅用于生成 GGUF。</li>
+</ul>
+</li>
+<li><strong><code>[你的项目总目录]\2_gguf_conversion\model-f16.gguf</code></strong> (文件)<ul>
+<li><strong>说明</strong>：中间步骤生成的全精度 GGUF 文件，体积非常大，仅用于生成最终的量化版 GGUF。</li>
+</ul>
+</li>
+</ul>
+<h3>建议保留的产物</h3>
+<ul>
+<li><strong><code>[你的项目总目录]\2_gguf_conversion\model-q4_k_m.gguf</code></strong> (文件)<ul>
+<li><strong>说明</strong>：您所有工作的最终产物，是模型的“母版”。强烈建议<strong>备份并保留</strong>。</li>
+</ul>
+</li>
+<li><strong><code>[你的项目总目录]\3_ollama_deploy\</code></strong> (文件夹)<ul>
+<li><strong>说明</strong>：包含了 <code>Modelfile</code>，是您模型的“配方”，建议和 GGUF 文件一起保留。</li>
+</ul>
+</li>
+<li><strong><code>[你的llama.cpp目录]\build\</code></strong> (文件夹)<ul>
+<li><strong>说明</strong>：包含了编译好的 <code>llama-quantize.exe</code> 等工具，保留它可以让您在处理下一个模型时跳过编译步骤。</li>
+</ul>
+</li>
+</ul>
+								</article>
+						</div>
+					</div>
+				</div>
+			</section>
+	</div>
+</div>
+
+				</div>
+			</div>
+
+		<!-- Footer Wrapper -->
+			<div id="footer-wrapper">
+				<!-- Footer -->
+					<section id="footer" class="container">
+						<div class="row">
+							<div class="8u">
+								<section>
+									<header>
+										<h2>Latest articles</h2>
+									</header>
+									<ul class="dates">
+										<li>
+											<span class="date">9月 <strong>4</strong></span>
+											<h3><a href="nonlocal-gloval.html">python里nonlocal和global的区别</a></h3>
+											<p><p>在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：</p>
+<p><strong>作用域差异</strong>
+* global‌：用于访问或修改全局变量（模块级别），可 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>31</strong></span>
+											<h3><a href="ppo-grpo-difference.html">对比PPO和GRPO的原理</a></h3>
+											<p><h2>PPO算法原理：</h2>
+<p>PPO是一种<strong>策略梯度（Policy Gradient）</strong>算法，属于强化学习（Reinforcement Learning, RL）的范畴。它的核 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>22</strong></span>
+											<h3><a href="backtrack-algorithm.html">回溯算法解题思路</a></h3>
+											<p><h2>回溯算法的套路</h2>
+<h3>1. 子集型回溯</h3>
+<p><strong>17. 电话号码的字母组合</strong></p>
+<p><strong>思路 …</strong></p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>21</strong></span>
+											<h3><a href="Lora-finetune-theory.html">Lora微调的原理</a></h3>
+											<p><h2>从矩阵奇异值分解到LoRA原理</h2>
+<p>在当今人工智能领域，大型语言模型 …</p></p>
+										</li>
+									</ul>
+								</section>
+							</div>
+								<div class="4u">
+									<section>
+										<header>
+											<h2>What's this all about?</h2>
+										</header>
+											<a href="/pages/about.me.html" class="image image-full"><img src="https://msc376393675.github.io/images/pic10.jpg" alt="" /></a>
+										<p>
+										一名努力学习大模型相关技术的数据科学专业在读研究生。
+										</p>
+										<footer>
+												<a href="/pages/about.me.html" class="button">Find out more</a>
+										</footer>
+									</section>
+								</div>
+						</div>
+						<div class="row">
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Blogroll</h2>
+									</header>
+									<ul class="divided">
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Categories</h2>
+									</header>
+									<ul class="divided">
+											<li><a href="https://msc376393675.github.io/category/leetcodeshua-ti.html">Leetcode刷题</a></li>
+											<li><a href="https://msc376393675.github.io/category/llm.html">LLM</a></li>
+											<li><a href="https://msc376393675.github.io/category/llmxue-xi.html">LLM学习</a></li>
+											<li><a href="https://msc376393675.github.io/category/pythonxue-xi.html">Python学习</a></li>
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+							
+								<section>
+									<header>
+										<h2>Contact</h2>
+									</header>
+									<ul class="social">
+												<li>
+													<a href="https://github.com/msc376393675" target="_blank" aria-label="github">
+														<i class="fab fa-github"></i>
+													</a>
+												</li>
+												<li>
+													<a href="mailto:shichenma@outlook.com" target="_blank" aria-label="envelope">
+														<i class="fas fa-envelope"></i>
+													</a>
+												</li>
+												<li>
+													<a href="/images/wechat_qr.jpg" target="_blank" aria-label="weixin">
+														<i class="fab fa-weixin"></i>
+													</a>
+												</li>
+									</ul>
+									<ul class="contact">
+											<li>
+												<h3>Phone</h3>
+												<p>+86 18320131508</p>
+											</li>
+										
+									</ul>
+								</section>
+							</div>
+						</div>
+						<div class="row">
+							<div class="12u">
+								<!-- Copyright -->
+									<div id="copyright">
+										<ul class="links">
+											<li>&copy; Shichen Ma	</li>
+											<li>Images: <a href="http://facebook.com/DreametryDoodle">Dreametry Doodle</a> + <a href="http://iconify.it">Iconify.it</a></li>
+											<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+										</ul>
+									</div>
+							</div>
+						</div>
+					</section>
+			</div>
+		<script src="/theme/js/jquery.min.js"></script>
+		<script src="/theme/js/jquery.dropotron.js"></script>
+		<script src="/theme/js/config.js"></script>
+		<script src="/theme/js/skel.min.js"></script>
+		<script src="/theme/js/skel-panels.min.js"></script>
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><link rel="stylesheet" href="/theme/css/ie8.css" /><![endif]-->
+	</body>
+</html>

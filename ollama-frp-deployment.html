@@ -1,0 +1,351 @@
+
+<!DOCTYPE HTML>
+<!--
+	Dopetrope 2.0 by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+			<title>msc的技术小站</title>
+			<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+			<meta charset="utf-8" />
+			<link href="https://msc376393675.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Full Atom Feed" />
+			<link href="https://msc376393675.github.io/feeds/llmxue-xi.atom.xml" type="application/atom+xml" rel="alternate" title="msc的技术小站 Categories Atom Feed" />
+			<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,900,300italic" rel="stylesheet" />
+				<link rel="stylesheet" href="/theme/css/pygment.css" />
+			<noscript>
+				<link rel="stylesheet" href="/theme/css/skel-noscript.css" />
+				<link rel="stylesheet" href="/theme/css/style.css" />
+				<link rel="stylesheet" href="/theme/css/style-desktop.css" />
+			</noscript>
+		<script src="https://kit.fontawesome.com/2f9851b6f6.js" crossorigin="anonymous"></script>
+		
+	</head>
+	<body class="no-sidebar">
+		<!-- Header Wrapper -->
+			<div id="header-wrapper">
+				<div class="container">
+					<div class="row">
+						<div class="12u">
+						
+							<!-- Header -->
+								<section id="header">
+									
+									<!-- Logo -->
+									<h1><a href="https://msc376393675.github.io/">msc的技术小站</a></h1>
+									
+									<!-- Nav -->
+										<nav id="nav">
+											<ul>
+											</ul>
+										</nav>
+
+								</section>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		
+		<!-- Main Wrapper -->
+			<div id="main-wrapper">
+				<div class="container">
+<div class="row">
+	<div class="12u">
+			<section>
+				<div>
+					<div class="row">
+						<div class="12u skel-cell-mainContent">
+							<!-- Content -->
+								<article class="box is-post">
+									<div class="post-infos">
+										<ul class="tags">
+											<li><a class="button" href="category/llmxue-xi.html">Llm学习</a></li>
+												<li><a class="button button-alt" href="tag/ollama.html">Ollama</a></li>
+
+												<li><a class="button button-alt" href="tag/frp.html">Frp</a></li>
+
+												<li><a class="button button-alt" href="tag/nei-wang-chuan-tou.html">内网穿透</a></li>
+
+												<li><a class="button button-alt" href="tag/fu-wu-qi.html">服务器</a></li>
+
+										</ul>
+									</div>
+
+									<div class="pennant pennant-alt date">2025-08-05</div>
+									<h2>通过frp实现Ollama内网穿透：从零到一部署指南</h2>
+									<p>本文档旨在详细记录如何使用 <code>frp</code> 工具，将一台部署在内网的Ollama大模型服务，安全、稳定地暴露到公网上，使得任何能连接互联网的设备都可以访问。</p>
+<h2>准备工作</h2>
+<p>在开始之前，请确保您拥有以下两项基本资源：</p>
+<ol>
+<li><strong>Ollama本地机</strong>：一台已经安装并成功运行Ollama服务的电脑（在本文中，这是一台Linux系统的机器）。这将是我们的 <strong>frpc客户端</strong>。</li>
+<li><strong>云服务器</strong>：一台拥有固定公网IP地址的云服务器（在本文中，这是一台Windows Server 2022系统的京东云主机）。这将是我们的 <strong>frps服务端</strong>。</li>
+</ol>
+<h2>部署步骤</h2>
+<h3><strong>第1步：在两台机器上准备frp程序</strong></h3>
+<p><code>frp</code>的唯一官方下载渠道是其GitHub Releases页面。请为您的两台机器下载对应的正确版本。</p>
+<ul>
+<li>
+<p><strong>云服务器 (Windows Server)</strong>:</p>
+<ul>
+<li><strong>下载</strong>：<code>frp_..._windows_amd64.zip</code></li>
+<li><strong>操作</strong>：在服务器上创建一个永久性文件夹（例如 <code>C:\frp</code>），并将下载的压缩包解压至此。</li>
+</ul>
+</li>
+<li>
+<p><strong>Ollama本地机 (Linux)</strong>:</p>
+<ul>
+<li><strong>下载</strong>：<code>frp_..._linux_amd64.tar.gz</code></li>
+<li><strong>操作</strong>：在本地机上创建一个文件夹（例如 <code>~/frp</code>），并使用 <code>tar -zxvf ...</code> 命令将压缩包解压至此。</li>
+</ul>
+</li>
+</ul>
+<h3><strong>第2步：配置云服务器 (frps服务端)</strong></h3>
+<h4>2.1 创建 <code>frps.toml</code> 配置文件</h4>
+<p>在云服务器的 <code>C:\frp</code> 目录下，创建一个名为 <code>frps.toml</code> 的文件，并填入以下内容。这个文件告诉frp服务端要监听哪个端口，以及用于认证的密码。</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># C:\frp\frps.toml</span>
+<span class="n">bindPort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7000</span>
+<span class="n">auth</span><span class="p">.</span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;YourSuperSecretToken123&quot;</span><span class="w"> </span><span class="c1"># 请使用您自己的复杂密码</span>
+</code></pre></div>
+
+<h4>2.2 配置防火墙 (关键步骤)</h4>
+<p>为了让外部请求能够到达<code>frps</code>服务，需要打通两层防火墙。</p>
+<ol>
+<li>
+<p><strong>云平台安全组</strong>:</p>
+<ul>
+<li>登录您的云服务商（如京东云）的网页控制台。</li>
+<li>找到您服务器实例的“安全组”配置。</li>
+<li>添加入站规则，<strong>允许</strong>以下两个TCP端口的访问，源IP设置为 <code>0.0.0.0/0</code>：<ul>
+<li><code>7000</code> (用于frp客户端和服务端之间的通信)</li>
+<li><code>11434</code> (用于外部用户访问您的Ollama穿透服务)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Windows Server系统防火墙</strong>:</p>
+<ul>
+<li>在服务器上打开“高级安全 Windows Defender 防火墙”。</li>
+<li>创建一条新的“入站规则”，允许TCP协议访问本地端口 <code>7000</code> 和 <code>11434</code>。</li>
+</ul>
+</li>
+</ol>
+<h4>2.3 设置为Windows服务 (推荐)</h4>
+<p>为了让<code>frps</code>能在后台长期稳定运行，我们使用<code>nssm</code>工具将其注册为Windows服务。</p>
+<ol>
+<li>下载<code>nssm</code>并将其<code>nssm.exe</code>文件放入<code>C:\frp</code>目录。</li>
+<li>以管理员身份打开命令提示符，运行 <code>.\nssm.exe install frps</code>。</li>
+<li>在弹出的图形界面中设置：<ul>
+<li><strong>Path</strong>: <code>C:\frp\frps.exe</code></li>
+<li><strong>Startup directory</strong>: <code>C:\frp</code></li>
+<li><strong>Arguments</strong>: <code>-c C:\frp\frps.toml</code></li>
+</ul>
+</li>
+<li>安装并启动服务（通过 <code>nssm start frps</code> 或 <code>services.msc</code>）。</li>
+</ol>
+<h3><strong>第3步：配置Ollama本地机 (frpc客户端)</strong></h3>
+<h4>3.1 创建 <code>frpc.toml</code> 配置文件</h4>
+<p>在Ollama本地机的 <code>~/frp</code> 目录下，创建 <code>frpc.toml</code> 文件，并填入以下内容。这个文件告诉客户端去连接哪个公网服务器，并如何映射本地服务。</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># ~/frp/frpc.toml</span>
+<span class="n">serverAddr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;117.72.161.206&quot;</span><span class="w">    </span><span class="c1"># 替换为您的云服务器公网IP</span>
+<span class="n">serverPort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7000</span>
+<span class="n">auth</span><span class="p">.</span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;YourSuperSecretToken123&quot;</span><span class="w"> </span><span class="c1"># 必须与frps.toml中的密码一致</span>
+
+<span class="k">[[proxies]]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ollama-service&quot;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tcp&quot;</span>
+<span class="n">localIP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;127.0.0.1&quot;</span>
+<span class="n">localPort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11434</span>
+<span class="n">remotePort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11434</span>
+</code></pre></div>
+
+<h4>3.2 设置为Linux服务 (推荐)</h4>
+<p>同样，为了让<code>frpc</code>在Linux上后台运行，我们使用<code>systemd</code>。</p>
+<ol>
+<li><strong>赋予执行权限</strong>:
+    <code>bash
+    chmod +x ~/frp/frpc</code></li>
+<li><strong>创建服务文件</strong>:
+    <code>bash
+    sudo nano /etc/systemd/system/frpc.service</code></li>
+<li>
+<p><strong>填入服务配置</strong> (请务必使用绝对路径):
+    ```ini
+    [Unit]
+    Description=frp client
+    After=network.target</p>
+<p>[Service]
+Type=simple
+User=nobody
+Restart=on-failure
+RestartSec=5s
+ExecStart=/path/to/your/frp/frpc -c /path/to/your/frp/frpc.toml
+WorkingDirectory=/path/to/your/frp/</p>
+<p>[Install]
+WantedBy=multi-user.target
+<code>4.  **启动服务**:</code>bash
+sudo systemctl enable frpc
+sudo systemctl start frpc
+```</p>
+</li>
+</ol>
+<h3><strong>第4步：启动服务并验证</strong></h3>
+<p>确保两端的服务都已启动后，您可以在任何能上网的设备上打开终端，运行以下命令进行最终验证：</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://117.72.161.206:11434
+</code></pre></div>
+
+<p>如果屏幕上返回 <code>Ollama is running</code>，则代表您已成功实现内网穿透！</p>
+<h3><strong>第5步：在代码中调用</strong></h3>
+<p>最后，将您应用程序中调用Ollama的地址，更新为新的公网地址即可。</p>
+<p><strong>示例 (<code>llm_wrapper.py</code>)</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">OLLAMA_BASE_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OLLAMA_BASE_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;http://117.72.161.206:11434&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<hr>
+								</article>
+						</div>
+					</div>
+				</div>
+			</section>
+	</div>
+</div>
+
+				</div>
+			</div>
+
+		<!-- Footer Wrapper -->
+			<div id="footer-wrapper">
+				<!-- Footer -->
+					<section id="footer" class="container">
+						<div class="row">
+							<div class="8u">
+								<section>
+									<header>
+										<h2>Latest articles</h2>
+									</header>
+									<ul class="dates">
+										<li>
+											<span class="date">9月 <strong>4</strong></span>
+											<h3><a href="nonlocal-gloval.html">python里nonlocal和global的区别</a></h3>
+											<p><p>在Python中，global和nonlocal关键字的区别主要体现在作用域和功能上：</p>
+<p><strong>作用域差异</strong>
+* global‌：用于访问或修改全局变量（模块级别），可 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>31</strong></span>
+											<h3><a href="ppo-grpo-difference.html">对比PPO和GRPO的原理</a></h3>
+											<p><h2>PPO算法原理：</h2>
+<p>PPO是一种<strong>策略梯度（Policy Gradient）</strong>算法，属于强化学习（Reinforcement Learning, RL）的范畴。它的核 …</p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>22</strong></span>
+											<h3><a href="backtrack-algorithm.html">回溯算法解题思路</a></h3>
+											<p><h2>回溯算法的套路</h2>
+<h3>1. 子集型回溯</h3>
+<p><strong>17. 电话号码的字母组合</strong></p>
+<p><strong>思路 …</strong></p></p>
+										</li>
+										<li>
+											<span class="date">8月 <strong>21</strong></span>
+											<h3><a href="Lora-finetune-theory.html">Lora微调的原理</a></h3>
+											<p><h2>从矩阵奇异值分解到LoRA原理</h2>
+<p>在当今人工智能领域，大型语言模型 …</p></p>
+										</li>
+									</ul>
+								</section>
+							</div>
+								<div class="4u">
+									<section>
+										<header>
+											<h2>What's this all about?</h2>
+										</header>
+											<a href="/pages/about.me.html" class="image image-full"><img src="https://msc376393675.github.io/images/pic10.jpg" alt="" /></a>
+										<p>
+										一名努力学习大模型相关技术的数据科学专业在读研究生。
+										</p>
+										<footer>
+												<a href="/pages/about.me.html" class="button">Find out more</a>
+										</footer>
+									</section>
+								</div>
+						</div>
+						<div class="row">
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Blogroll</h2>
+									</header>
+									<ul class="divided">
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+								<section>
+									<header>
+										<h2>Categories</h2>
+									</header>
+									<ul class="divided">
+											<li><a href="https://msc376393675.github.io/category/leetcodeshua-ti.html">Leetcode刷题</a></li>
+											<li><a href="https://msc376393675.github.io/category/llm.html">LLM</a></li>
+											<li><a href="https://msc376393675.github.io/category/llmxue-xi.html">LLM学习</a></li>
+											<li><a href="https://msc376393675.github.io/category/pythonxue-xi.html">Python学习</a></li>
+									</ul>
+								</section>
+							</div>
+							<div class="4u">
+							
+								<section>
+									<header>
+										<h2>Contact</h2>
+									</header>
+									<ul class="social">
+												<li>
+													<a href="https://github.com/msc376393675" target="_blank" aria-label="github">
+														<i class="fab fa-github"></i>
+													</a>
+												</li>
+												<li>
+													<a href="mailto:shichenma@outlook.com" target="_blank" aria-label="envelope">
+														<i class="fas fa-envelope"></i>
+													</a>
+												</li>
+												<li>
+													<a href="/images/wechat_qr.jpg" target="_blank" aria-label="weixin">
+														<i class="fab fa-weixin"></i>
+													</a>
+												</li>
+									</ul>
+									<ul class="contact">
+											<li>
+												<h3>Phone</h3>
+												<p>+86 18320131508</p>
+											</li>
+										
+									</ul>
+								</section>
+							</div>
+						</div>
+						<div class="row">
+							<div class="12u">
+								<!-- Copyright -->
+									<div id="copyright">
+										<ul class="links">
+											<li>&copy; Shichen Ma	</li>
+											<li>Images: <a href="http://facebook.com/DreametryDoodle">Dreametry Doodle</a> + <a href="http://iconify.it">Iconify.it</a></li>
+											<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+										</ul>
+									</div>
+							</div>
+						</div>
+					</section>
+			</div>
+		<script src="/theme/js/jquery.min.js"></script>
+		<script src="/theme/js/jquery.dropotron.js"></script>
+		<script src="/theme/js/config.js"></script>
+		<script src="/theme/js/skel.min.js"></script>
+		<script src="/theme/js/skel-panels.min.js"></script>
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><link rel="stylesheet" href="/theme/css/ie8.css" /><![endif]-->
+	</body>
+</html>
